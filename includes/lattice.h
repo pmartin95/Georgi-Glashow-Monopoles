@@ -1,0 +1,93 @@
+
+#include <iostream>
+#include<complex>
+#include<cstdlib>
+#include "rand.h"
+#include<Eigen/Dense>
+#define DEFAULT_LATTICE_SIZE 16
+
+#ifndef _LATTICE_
+#define __LATTICE__
+
+#define FORALLDIR(i) for(i = 0; i<4;i++)
+#define FORALLDIRBUT(i,dir) for(i=0;i<4;i++) if(i != dir)
+#define FORALLDIRLESSTHAN(i,j) for( j = 0; j<4;j++) for(i=0;i<j;i++)
+
+typedef Eigen::Matrix2cd matrix_complex;
+
+class simulation;
+
+class lattice_site{
+public:
+  friend class lattice;
+  friend class simulation;
+  lattice_site();
+  lattice_site(const matrix_complex& link0,const matrix_complex& link1, const matrix_complex& link2, const matrix_complex& link3, const matrix_complex& higg_temp  );
+  lattice_site(const matrix_complex& link_temp, const matrix_complex& higg_temp  );
+  lattice_site(const lattice_site& site1);
+  lattice_site(URNG& g);
+  const matrix_complex& output() const;
+  const matrix_complex& output(int i) const;
+  friend std::ostream& operator <<(std::ostream& outputStream,const lattice_site& site1);
+  lattice_site& operator =(const lattice_site& site1);
+
+
+private:
+  matrix_complex link[4];
+  matrix_complex higgs;
+};
+
+
+
+
+class lattice{
+public:
+  friend class simulation;
+  //Setup functions
+  lattice();
+  lattice(int Nt, int Nx, int Ny, int Nz);
+  lattice(const lattice& lattice1);
+  lattice(const lattice_site& site1);
+  lattice(URNG& g);
+  lattice(int Nt, int Nx, int Ny, int Nz,URNG& g);
+  ~lattice();
+  //Utilty functions
+  void infoPrint() const;
+  long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
+  long unsigned int coordinateToIndex(int (&coordinates)[4]) const;
+  long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
+  void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
+  void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
+private:
+  int nt,nx,ny,nz;
+  int ns[4];
+  long int nsites;
+  lattice_site * site;
+};
+
+class Plattice{
+public:
+  friend class simulation;
+  //Setup functions
+  Plattice();
+  Plattice(int Nt, int Nx, int Ny, int Nz);
+  Plattice(const lattice& lattice1,URNG& g);
+  Plattice(const lattice& Plattice1);
+  Plattice(const lattice_site& site1);
+  Plattice(URNG& g);
+  Plattice(int Nt, int Nx, int Ny, int Nz,URNG& g);
+  ~Plattice();
+  //Utilty functions
+  void infoPrint() const;
+  long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
+  long unsigned int coordinateToIndex(int (&coordinates)[4]) const;
+  long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
+  void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
+  void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
+private:
+  int nt,nx,ny,nz;
+  int ns[4];
+  long int nsites;
+  lattice_site * site;
+};
+#endif
