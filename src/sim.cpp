@@ -3,6 +3,8 @@
 //Initialization
 simulation::simulation()
 {
+  nAccepts = 0;
+  nRejects = 0;
   std::mt19937_64 randTemp(seedGen());
   randomGenerator = randTemp;
   steps = DEFAULT_STEPS;
@@ -19,6 +21,8 @@ simulation::simulation()
 
 simulation::simulation(const simulation& sim)
 {
+  nAccepts = 0;
+  nRejects = 0;
   randomGenerator = sim.randomGenerator;
   steps = sim.steps;
   stepSize = sim.stepSize;
@@ -34,6 +38,8 @@ simulation::simulation(const simulation& sim)
 
 simulation::simulation(const simulation& sim, char boundaryType)
 {
+  nAccepts = 0;
+  nRejects = 0;
   randomGenerator = sim.randomGenerator;
   steps = sim.steps;
   stepSize = sim.stepSize;
@@ -49,6 +55,8 @@ simulation::simulation(const simulation& sim, char boundaryType)
 
 simulation::simulation(double m2_in,double lambda_in,double g_in)
 {
+  nAccepts = 0;
+  nRejects = 0;
   std::mt19937_64 randTemp(seedGen());
   randomGenerator = randTemp;
   steps = DEFAULT_STEPS;
@@ -64,6 +72,8 @@ simulation::simulation(double m2_in,double lambda_in,double g_in)
 }
 simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in)
 {
+  nAccepts = 0;
+  nRejects = 0;
   std::mt19937_64 randTemp(seedGen());
   randomGenerator = randTemp;
   steps = DEFAULT_STEPS;
@@ -79,6 +89,8 @@ simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice&
 }
 simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in, char boundaryType)
 {
+  nAccepts = 0;
+  nRejects = 0;
   std::mt19937_64 randTemp(seedGen());
   randomGenerator = randTemp;
   steps = DEFAULT_STEPS;
@@ -98,7 +110,6 @@ void simulation::runLeapfrogSimulation()
 {
   for(int i;i<steps;i++)
     leapfrogOneStep(i);
-  
 }
 
 void simulation::leapfrogOneStep(int i)

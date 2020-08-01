@@ -3,6 +3,7 @@
 
 #ifndef __SIMULATION__
 #define __SIMULATION__
+
 #define DEFAULT_STEPS 200
 #define DEFAULT_STEP_SIZE 0.05
 #define DEFAULT_LAMBDA 1.0
@@ -43,6 +44,7 @@ public:
   //const matrix_complex twistedBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
 private:
   int steps;
+  int nAccepts, nRejects;
   double stepSize;
   double m2, lambda, g;
   const matrix_complex plaquette(long unsigned index, int dir1, int dir2) const;
