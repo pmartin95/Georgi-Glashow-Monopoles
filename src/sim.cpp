@@ -120,10 +120,26 @@ void simulation::leapfrogOneStep(int i)
 
 void evolveMomentum(int i);//
 void evolveFields(int i);//
-bool metropolisDecision()
+bool simulation::metropolisDecision()
 {
+  double beta = 4.0 /(g*g) //? Double check this
+  double expResult;
+  double randomDecider;
   //should return true if to accept configuration, otherwise replace with copy and start over
+  expResult = std::min(exp(-beta * (georgiGlashowHamiltonian(L,endMomentum) - georgiGlashowHamiltonian(Lcopy,startMomentum))), 1.0)
+  randomDecider = uniformReal(randomGenerator);
+  if(expResult > randomDecider)
+  {
+    nAccepts++;
+    return true;
+  }
+  else
+  {
+    nRejects++;
+    return false;
+  }
 }
+
 //Action functions
 double simulation::georgiGlashowLagrangianDensity(long unsigned int index) const
 {
@@ -181,8 +197,23 @@ void simulation::setupBoundaryConditions()
       boundary_condition = &simulation::periodicBoundaryCondition;
   }
 }
-void setupBoundaryConditions( char boundaryType);
-void setupParams(int m2,int lambda, int g); //
+void simulation::setupBoundaryConditions( char boundaryType)
+{
+  switch (boundaryType) {
+    case 'p': case 'P':
+      boundary_condition = &simulation::periodicBoundaryCondition;
+      break;
+    default:
+      std::cout << "ERROR: no valid input. Using periodic boundary conditions.\n";
+      boundary_condition = &simulation::periodicBoundaryCondition;
+  }
+}
+void setupParams(int m2_in,int lambda_in, int g_in)
+{
+  m2 = m2_in;
+  lambda = lambda_in;
+  g = g_in;
+}
 
 const matrix_complex& simulation::periodicBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump)
 {
@@ -202,7 +233,13 @@ const matrix_complex& simulation::periodicBoundaryCondition(int matrix_num, unsi
 }
 //const matrix_complex simulation::cBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
 //const matrix_complex simulation::twistedBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
-
+  void simulation::printAcceptance() const
+  {
+    if(nAccepts + nRejects > 0)
+      std::cout << static_cast<float>(nAccepts)/ static_cast<float>(nAccepts+nRejects) <<std::endl;
+    else
+      std::cout << "There have been no acceptance or rejections.\n";
+  }
 const matrix_complex simulation::plaquette(long unsigned index, int dir1, int dir2) const
 {
   matrix_complex u1, u2, u3, u4;

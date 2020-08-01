@@ -1,3 +1,4 @@
+#include<algorithm>
 #include "lattice.h"
 #include "rand.h"
 
@@ -15,18 +16,18 @@ typedef  const matrix_complex (simulation::*simMatrixReturn)(int matrix_num, uns
 class simulation{
 public:
   //Initialization
-  simulation(); //
-  simulation(const simulation& sim); //
-  simulation(const simulation& sim, char boundaryType); //
-  simulation(double m2_in,double lambda_in,double g_in); //
-  simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in); //
-  simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in, char boundaryType); //
+  simulation();
+  simulation(const simulation& sim);
+  simulation(const simulation& sim, char boundaryType);
+  simulation(double m2_in,double lambda_in,double g_in);
+  simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in);
+  simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in, char boundaryType);
   //HMC routines
-  void runLeapfrogSimulation(); //
+  void runLeapfrogSimulation();
   void leapfrogOneStep(int i); //
   void evolveMomentum(int i);//
   void evolveFields(int i);//
-  bool metropolisDecision();//
+  bool metropolisDecision();
   //Action functions
   double georgiGlashowLagrangianDensity(long unsigned int) const;
   double georgiGlashowAction() const;
@@ -38,10 +39,11 @@ public:
   //Setup functions
   void setupBoundaryConditions();
   void setupBoundaryConditions( char boundaryType);
-  void setupParams(int m2,int lambda, int g); //
+  void setupParams(int m2_in,int lambda_in, int g_in);
   const matrix_complex periodicBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
   //const matrix_complex cBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
   //const matrix_complex twistedBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
+  void printAcceptance() const;
 private:
   int steps;
   int nAccepts, nRejects;
