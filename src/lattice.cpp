@@ -257,13 +257,6 @@ void lattice::indexToCoordinate(long unsigned int index,int& t, int& x, int& y, 
 //////// Here below needs ot be looked over
 // Need to redo functions for P lattice sites
 
-Plattice_site::Plattice_site()
-{
-  for(int i=0;i<4;i++)
-    link[i].setIdentity();
-  higgs.setZero();
-}
-
 Plattice_site::Plattice_site(const matrix_complex& link0,const matrix_complex& link1, const matrix_complex& link2, const matrix_complex& link3, const matrix_complex& higg_temp  )
 {
   link[0] = link0;
@@ -284,8 +277,8 @@ Plattice_site::Plattice_site(URNG& g)
 {
   int i;
   FORALLDIR(i)
-  link[i] = uniformSU2Matrix(g);
-  higgs.setZero();
+    link[i] = normalHermitianMatrix(g);
+  higgs = normalHermitianMatrix(g);
 }
 
 const matrix_complex& Plattice_site::output() const
@@ -321,45 +314,6 @@ Plattice_site& Plattice_site::operator =(const Plattice_site& site1)
   }
 }
 
-Plattice::Plattice()
-{
-  nt = DEFAULT_LATTICE_SIZE;
-  nx = DEFAULT_LATTICE_SIZE;
-  ny = DEFAULT_LATTICE_SIZE;
-  nz = DEFAULT_LATTICE_SIZE;
-  nsites = nt * nx * ny * nz;
-  ns[0] = nt;
-  ns[1] = nx;
-  ns[2] = ny;
-  ns[3] = nz;
-  site = new Plattice_site[nsites];
-  for(long unsigned int i = 0; i < nsites;i++)
-  {
-    site[i] = Plattice_site();
-  }
-}
-
-Plattice::Plattice(int Nt, int Nx, int Ny, int Nz)
-{
-  nt = Nt;
-  nx = Nx;
-  ny = Ny;
-  nz = Nz;
-
-  ns[0] = nt;
-  ns[1] = nx;
-  ns[2] = ny;
-  ns[3] = nz;
-
-  nsites = nt * nx * ny * nz;
-
-  site = new Plattice_site[nsites];
-  for(long unsigned int i = 0; i < nsites;i++)
-  {
-    site[i] = Plattice_site();
-  }
-}
-
 Plattice::Plattice(const Plattice& Plattice1)
 {
   nt = Plattice1.nt;
@@ -375,24 +329,6 @@ Plattice::Plattice(const Plattice& Plattice1)
   for(long unsigned int i = 0; i < nsites;i++)
   {
     site[i] = Plattice1.L[i];
-  }
-}
-
-Plattice::Plattice(const Plattice_site& site1)
-{
-  nt = DEFAULT_LATTICE_SIZE;
-  nx = DEFAULT_LATTICE_SIZE;
-  ny = DEFAULT_LATTICE_SIZE;
-  nz = DEFAULT_LATTICE_SIZE;
-  nsites = nt * nx * ny * nz;
-  ns[0] = nt;
-  ns[1] = nx;
-  ns[2] = ny;
-  ns[3] = nz;
-  site = new Plattice_site[nsites];
-  for(long unsigned int i = 0; i < nsites;i++)
-  {
-    site[i] = site1;
   }
 }
 

@@ -29,7 +29,7 @@ public:
   const matrix_complex& output() const;
   const matrix_complex& output(int i) const;
   friend std::ostream& operator <<(std::ostream& outputStream,const lattice_site& site1);
-  lattice_site& operator =(const lattice_site& site1);
+  Plattice_site& operator =(const lattice_site& site1);
 private:
   matrix_complex link[4];
   matrix_complex higgs;
@@ -39,15 +39,13 @@ class Plattice_site{
 public:
   friend class Plattice;
   friend class simulation;
-  Plattice_site();
   Plattice_site(const matrix_complex& link0,const matrix_complex& link1, const matrix_complex& link2, const matrix_complex& link3, const matrix_complex& higg_temp  );
-  Plattice_site(const matrix_complex& link_temp, const matrix_complex& higg_temp  );
-  Plattice_site(const lattice_site& site1);
+  Plattice_site(const Plattice_site& site1);
   Plattice_site(URNG& g);
   const matrix_complex& output() const;
   const matrix_complex& output(int i) const;
-  friend std::ostream& operator <<(std::ostream& outputStream,const lattice_site& site1);
-  Plattice_site& operator =(const lattice_site& site1);
+  friend std::ostream& operator <<(std::ostream& outputStream,const Plattice_site& site1);
+  Plattice_site& operator =(const Plattice_site& site1);
 private:
   matrix_complex link[4];
   matrix_complex higgs;
@@ -84,9 +82,8 @@ public:
   friend class simulation;
   friend class lattice;
   //Setup functions
-  Plattice();
-  Plattice(int Nt, int Nx, int Ny, int Nz);
-  Plattice(const Plattice& lattice1);
+
+  Plattice(const Plattice& Plattice1);
   Plattice(const Plattice_site& site1);
   Plattice(URNG& g);
   Plattice(URNG& g, const lattice& L_in); //
