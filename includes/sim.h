@@ -11,7 +11,7 @@
 #define DEFAULT_M2 1.0
 #define DEFAULT_STARTING_G 1.0
 
-typedef  const matrix_complex (simulation::*simMatrixReturn)(int matrix_num, unsigned long int index, int dir, int jump); //matrix_num represents either link variable number or (5) the higgs field
+typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump); //matrix_num represents either link variable number or (5) the higgs field
 
 class simulation{
 public:
@@ -30,7 +30,9 @@ public:
   bool metropolisDecision();
   //Action functions
   double georgiGlashowLagrangianDensity(long unsigned int) const;
+  double georgiGlashowLagrangianDensity(long unsigned int, const lattice& L_in) const;
   double georgiGlashowAction() const;
+  double georgiGlashowAction(const lattice& L_in) const;
   double georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) const;
   const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int) const; //
   const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int) const; //
@@ -40,9 +42,10 @@ public:
   void setupBoundaryConditions();
   void setupBoundaryConditions( char boundaryType);
   void setupParams(int m2_in,int lambda_in, int g_in);
-  const matrix_complex periodicBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
-  //const matrix_complex cBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
-  //const matrix_complex twistedBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
+  void setupParams(int m2_in);
+  const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
+  //const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
+  //const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
   void printAcceptance() const;
 private:
   int steps;
@@ -50,6 +53,7 @@ private:
   double stepSize;
   double m2, lambda, g;
   const matrix_complex plaquette(long unsigned index, int dir1, int dir2) const;
+  const matrix_complex plaquette(const lattice& L_in,long unsigned index, int dir1, int dir2) const;
   lattice L, Lcopy;
   Plattice startMomentum, endMomentum;
   URNG randomGenerator;

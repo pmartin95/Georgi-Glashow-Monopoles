@@ -146,15 +146,42 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int index) const
   double total = 0.0, subtotal = 0.0;
   int i,j;
   long unsigned int temp_index;
-  matrix_complex phi = L.site[index].higgs;
+  matrix_complex phi = L.site[index].higgs; = boundary_condition(L,4,index,0,0);
   matrix_complex phi_temp;
   matrix_complex link1,link2, link3, link4;
 
   total += 8.0 * (phi * phi).trace().real();
   FORALLDIR(i)
   {
-    phi_temp = boundary_condition(4, index, i, 1);
-    link1 = L.site[index].link[i];
+    phi_temp = boundary_condition(L,4, index, i, 1);
+    link1 = boundary_condition(L,i,index,i,0);
+    total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
+  }
+  FORALLDIRLESSTHAN(i,j)
+  {
+    subtotal += 2.0 - (plaquette(index, i,j) ).trace().real();
+  }
+  total += subtotal * 2.0 /(g*g);
+  total += m2 *(phi * phi).trace().real()
+  subtotal = (phi * phi).trace().real();
+  total += lambda * subtotal * subtotal;
+  return total;
+}
+
+double simulation::georgiGlashowLagrangianDensity(long unsigned int, const lattice& L_in) const
+{
+  double total = 0.0, subtotal = 0.0;
+  int i,j;
+  long unsigned int temp_index;
+  matrix_complex phi = L_in.site[index].higgs; = boundary_condition(L_in,4,index,0,0);
+  matrix_complex phi_temp;
+  matrix_complex link1,link2, link3, link4;
+
+  total += 8.0 * (phi * phi).trace().real();
+  FORALLDIR(i)
+  {
+    phi_temp = boundary_condition(L_in,4, index, i, 1);
+    link1 = boundary_condition(L_in,i,index,i,0);
     total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
   }
   FORALLDIRLESSTHAN(i,j)
@@ -175,8 +202,32 @@ double simulation::georgiGlashowAction() const
     total += georgiGlashowLagrangianDensity(i);
   return total;
 }
+double simulation::georgiGlashowAction(const lattice& L_in) const
+{
+  double total = 0.0;
+  for(long unsigned int i = 0; i<L_in.nsites;i++)
+    total += georgiGlashowLagrangianDensity(L_in,i);
+  return total;
+}
+double simulation::georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) const
+{
+  matrix_complex momenta_matrix;
+  double field_total, momenta_total;
+  long unsigned int site_index;
+  int i;
 
-double simulation::georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) const;
+  momenta_total = 0.0;
+  momenta_matrix.setZero();
+  field_total = georgiGlashowAction(L_in);
+  for(site_index=0;site_index < L_in.nsites; site_index++)
+  {
+    FORALLDIR(i)
+      momenta_total += P_in.site[site_index].link[i].transpose() *  P_in.site[site_index].link[i];
+    momenta_total += P_in.site[site_index].higgs.transpose() *  P_in.site[site_index].higgs;
+  }
+  field_total = momenta_matrix.trace().real()/2.0;
+}
+
 const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int) const; //
 const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int) const; //
 //Observables
@@ -215,7 +266,11 @@ void simulation::setupParams(int m2_in,int lambda_in, int g_in)
   g = g_in;
 }
 
-const matrix_complex& simulation::periodicBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump)
+void simulation::setupParams(int m2_in)
+{
+  m2 = m2_in;
+}
+const matrix_complex& simulation::periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump)
 {
   if(jump == 0)
     return L.site[index].link[matrix_num];
@@ -231,8 +286,8 @@ const matrix_complex& simulation::periodicBoundaryCondition(int matrix_num, unsi
   else
     return L.site[new_index].higgs;
 }
-//const matrix_complex simulation::cBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
-//const matrix_complex simulation::twistedBoundaryCondition(int matrix_num, unsigned long int index, int dir, int jump);
+//const matrix_complex simulation::cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
+//const matrix_complex simulation::twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
   void simulation::printAcceptance() const
   {
     if(nAccepts + nRejects > 0)
@@ -244,10 +299,22 @@ const matrix_complex simulation::plaquette(long unsigned index, int dir1, int di
 {
   matrix_complex u1, u2, u3, u4;
 
-  u1 = boundary_condition(dir1, index,dir1,0);
-  u2 = boundary_condition(dir2, index,dir1,1);
-  u3 = boundary_condition(dir1, index,dir2,1).adjoint();
-  u4 = boundary_condition(dir2, index,dir2,0).adjoint();
+  u1 = boundary_condition(L,dir1, index,dir1,0);
+  u2 = boundary_condition(L,dir2, index,dir1,1);
+  u3 = boundary_condition(L,dir1, index,dir2,1).adjoint();
+  u4 = boundary_condition(L,dir2, index,dir2,0).adjoint();
+
+  return u1*u2*u3*u4;
+}
+
+const matrix_complex simulation::plaquette(const lattice& L_in,long unsigned index, int dir1, int dir2) const
+{
+  matrix_complex u1, u2, u3, u4;
+
+  u1 = boundary_condition(L_in,dir1, index,dir1,0);
+  u2 = boundary_condition(L_in,dir2, index,dir1,1);
+  u3 = boundary_condition(L_in,dir1, index,dir2,1).adjoint();
+  u4 = boundary_condition(L_in,dir2, index,dir2,0).adjoint();
 
   return u1*u2*u3*u4;
 }
