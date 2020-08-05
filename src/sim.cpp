@@ -176,11 +176,11 @@ double simulation::georgiGlashowAction() const
   return total;
 }
 
-double georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) const;
+double simulation::georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) const;
 const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int) const; //
 const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int) const; //
 //Observables
-double averagePlaquettes() const;//
+double simulation::averagePlaquettes() const;//
 //Setup functions
 void simulation::setupBoundaryConditions()
 {
@@ -208,7 +208,7 @@ void simulation::setupBoundaryConditions( char boundaryType)
       boundary_condition = &simulation::periodicBoundaryCondition;
   }
 }
-void setupParams(int m2_in,int lambda_in, int g_in)
+void simulation::setupParams(int m2_in,int lambda_in, int g_in)
 {
   m2 = m2_in;
   lambda = lambda_in;
