@@ -11,7 +11,7 @@
 #define DEFAULT_M2 1.0
 #define DEFAULT_STARTING_G 1.0
 
-typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump); //matrix_num represents either link variable number or (5) the higgs field
+typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]); //matrix_num represents either link variable number or (5) the higgs field
 
 class simulation{
 public:
@@ -35,7 +35,7 @@ public:
   double georgiGlashowAction(const lattice& L_in) const;
   double georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) const;
   const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int, int dir) const; //
-  const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int) const; //
+  const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const; //
   //Observables
   double averagePlaquettes() const;//
   //Setup functions
@@ -43,9 +43,9 @@ public:
   void setupBoundaryConditions( char boundaryType);
   void setupParams(int m2_in,int lambda_in, int g_in);
   void setupParams(int m2_in);
-  const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
-  //const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
-  //const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
+  const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
+  //const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
+  //const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
   void printAcceptance() const;
 private:
   int steps;

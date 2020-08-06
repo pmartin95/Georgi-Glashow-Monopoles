@@ -146,15 +146,17 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int index) const
   double total = 0.0, subtotal = 0.0;
   int i,j;
   long unsigned int temp_index;
-  matrix_complex phi = L.site[index].higgs; = boundary_condition(L,4,index,0,0);
+  matrix_complex phi  = boundary_condition(L,4,index,{0,0,0,0});
   matrix_complex phi_temp;
   matrix_complex link1,link2, link3, link4;
 
   total += 8.0 * (phi * phi).trace().real();
   FORALLDIR(i)
   {
-    phi_temp = boundary_condition(L,4, index, i, 1);
-    link1 = boundary_condition(L,i,index,i,0);
+    int jump1[4] = {0};
+    jump1[i]+=1;
+    phi_temp = boundary_condition(L,4, index, jump1);
+    link1 = boundary_condition(L,i,index,{0,0,0,0});
     total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
   }
   FORALLDIRLESSTHAN(i,j)
@@ -173,15 +175,17 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int, const latti
   double total = 0.0, subtotal = 0.0;
   int i,j;
   long unsigned int temp_index;
-  matrix_complex phi = L_in.site[index].higgs; = boundary_condition(L_in,4,index,0,0);
+  matrix_complex phi  = boundary_condition(L_in,4,index,{0,0,0,0});
   matrix_complex phi_temp;
   matrix_complex link1,link2, link3, link4;
 
   total += 8.0 * (phi * phi).trace().real();
   FORALLDIR(i)
   {
-    phi_temp = boundary_condition(L_in,4, index, i, 1);
-    link1 = boundary_condition(L_in,i,index,i,0);
+    int jump1[4] = {0};
+    jump1[i]+=1;
+    phi_temp = boundary_condition(L_in,4, index, jump1);
+    link1 = boundary_condition(L_in,i,index,{0,0,0,0});
     total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
   }
   FORALLDIRLESSTHAN(i,j)
@@ -229,7 +233,26 @@ double simulation::georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) cons
 }
 
 const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int, int dir) const; //
-const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int) const; //
+
+
+
+const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const
+{
+    matrix_complex temp1, temp2, temp3;
+    int temp_dir;
+    temp1.setIdentity();
+    temp2.setIdentity();
+    temp3.setIdentity();
+
+    FORALLDIR(temp_dir)
+    {
+      temp1 += boundary_condition(L_in,4,index,{0,0,0,0});
+      temp2 += boundary_condition(L_in,4,index,0,0) boundary_condition(L_in,4,index,0,0) boundary_condition(L_in,4,index,0,0);
+    }
+}
+
+
+
 //Observables
 double simulation::averagePlaquettes() const;//
 //Setup functions
@@ -270,39 +293,61 @@ void simulation::setupParams(int m2_in)
 {
   m2 = m2_in;
 }
-const matrix_complex& simulation::periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump)
+const matrix_complex& simulation::periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int jump[4])
 {
-  if(jump == 0)
-    return L.site[index].link[matrix_num];
+  int i;
+  bool shouldBreak;
+  FORALLDIR(i)
+  {
+    shouldBreak = jump[i] != 0;
+    if(shouldBreak)
+      break;
+  }
+  if(!shouldBreak)
+  {
+    if(matrix_num<4)
+      return L_in.site[index].link[matrix_num];
+    else
+      return L_in.site[index].higgs;
+  }
   int x[4];
   long unsigned int new_index;
-  L.indexToCoordinate(index, x);
-  x[dir] += jump;
-  if(x[dir] >= ns[dir])
-    x[dir] = (x[dir] + ns[dir])%ns[dir];
-  new_index = L.coordinateToIndex(x);
-  if(matrix_num<4)
-    return L.site[new_index].link[matrix_num];
-  else
-    return L.site[new_index].higgs;
-}
-//const matrix_complex simulation::cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
-//const matrix_complex simulation::twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, int dir, int jump);
-  void simulation::printAcceptance() const
+  L_in.indexToCoordinate(index, x);
+  int dir;
+  FORALLDIR(dir)
   {
-    if(nAccepts + nRejects > 0)
-      std::cout << static_cast<float>(nAccepts)/ static_cast<float>(nAccepts+nRejects) <<std::endl;
-    else
-      std::cout << "There have been no acceptance or rejections.\n";
+    x[dir] += jump[dir];
+  if(x[dir] >= L_in.ns[dir])
+    x[dir] = (x[dir] + ns[dir])%ns[dir];
   }
+  new_index = L_in.coordinateToIndex(x);
+  if(matrix_num<4)
+    return L_in.site[new_index].link[matrix_num];
+  else
+    return L_in.site[new_index].higgs;
+}
+//const matrix_complex simulation::cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
+//const matrix_complex simulation::twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
+void simulation::printAcceptance() const
+{
+  if(nAccepts + nRejects > 0)
+    std::cout << static_cast<float>(nAccepts)/ static_cast<float>(nAccepts+nRejects) <<std::endl;
+  else
+    std::cout << "There have been no acceptance or rejections.\n";
+}
+
 const matrix_complex simulation::plaquette(long unsigned index, int dir1, int dir2) const
 {
   matrix_complex u1, u2, u3, u4;
-
-  u1 = boundary_condition(L,dir1, index,dir1,0);
-  u2 = boundary_condition(L,dir2, index,dir1,1);
-  u3 = boundary_condition(L,dir1, index,dir2,1).adjoint();
-  u4 = boundary_condition(L,dir2, index,dir2,0).adjoint();
+  int jump1[4] ={0}, jump2[4]={0}, jump3[4]={0}, jump4[4]={0};
+  jump1[dir1] = 0;
+  u1 = boundary_condition(L,dir1, index,jump1);
+  jump2[dir1] = 1;
+  u2 = boundary_condition(L,dir2, index,jump2);
+  jump3[dir2] = 1;
+  u3 = boundary_condition(L,dir1, index,jump3).adjoint();
+  jump4[dir2] = 0;
+  u4 = boundary_condition(L,dir2, index,jump4).adjoint();
 
   return u1*u2*u3*u4;
 }
@@ -310,11 +355,16 @@ const matrix_complex simulation::plaquette(long unsigned index, int dir1, int di
 const matrix_complex simulation::plaquette(const lattice& L_in,long unsigned index, int dir1, int dir2) const
 {
   matrix_complex u1, u2, u3, u4;
+  int jump1[4] ={0}, jump2[4]={0}, jump3[4]={0}, jump4[4]={0};
 
-  u1 = boundary_condition(L_in,dir1, index,dir1,0);
-  u2 = boundary_condition(L_in,dir2, index,dir1,1);
-  u3 = boundary_condition(L_in,dir1, index,dir2,1).adjoint();
-  u4 = boundary_condition(L_in,dir2, index,dir2,0).adjoint();
+  jump1[dir1] = 0;
+  u1 = boundary_condition(L_in,dir1, index,jump1);
+  jump2[dir1] = 1;
+  u2 = boundary_condition(L_in,dir2, index,jump2);
+  jump3[dir2] = 1;
+  u3 = boundary_condition(L_in,dir1, index,jump3).adjoint();
+  jump4[dir2] = 0;
+  u4 = boundary_condition(L_in,dir2, index,jump4).adjoint();
 
   return u1*u2*u3*u4;
 }
