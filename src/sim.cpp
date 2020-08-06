@@ -228,7 +228,7 @@ double simulation::georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) cons
   field_total = momenta_matrix.trace().real()/2.0;
 }
 
-const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int) const; //
+const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int, int dir) const; //
 const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int) const; //
 //Observables
 double simulation::averagePlaquettes() const;//
