@@ -34,7 +34,7 @@ public:
   double georgiGlashowAction() const;
   double georgiGlashowAction(const lattice& L_in) const;
   double georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) const;
-  const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int, int dir) const; //
+  const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, lattice& L_in) const; //
   const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const; //
   //Observables
   double averagePlaquettes() const;//

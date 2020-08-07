@@ -232,34 +232,73 @@ double simulation::georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) cons
   field_total = momenta_matrix.trace().real()/2.0;
 }
 
-const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int, int dir) const; //
+const matrix_complex georgiGlashowActionLinkDerivative(long unsigned intsite_index, int dir, const lattice& L_in) const //
+{
+  matrix_complex temp1,temp2,temp3,temp4,Iden;
+  matrix_complex subtotal1,subtotal2;
+  int jump1[4] = {0}, jump2[4] = {0}, jump3[4] = {0}, jump4[4] = {0};
+  int temp_dir
+  complex traced_part;
+  Iden.setIdentity();
+  jump1[dir]++;
+  FORALLDIRBUT(temp_dir,dir)
+  {
+      jump2[temp_dir]++;
+      jump3[temp_dir]--;
+      jump4[dir]++;
+      jum4[temp_dir]--;
+      temp1 = boundary_condition(L_in,dir,site_index,{0,0,0,0}) * boundary_condition(L_in,temp_dir,site_index,jump1) * boundary_condition(L_in,dir,site_index,jump2).adjoint() * boundary_condition(L_in,temp_dir,site_index,{0,0,0,0}).adjoint();
+      temp2 = boundary_condition(L_in,temp_dir,site_index,{0,0,0,0}) * boundary_condition(L_in,dir,site_index,jump2) * boundary_condition(L_in,temp_dir,site_index,jump1).adjoint() * boundary_condition(L_in,dir,site_index,{0,0,0,0}).adjoint();
+      temp3 = boundary_condition(L_in,temp_dir,site_index,jump3).adjoint() * boundary_condition(L_in,dir,site_index,jump3) * boundary_condition(L_in,temp_dir,site_index,jump4) * boundary_condition(L_in,dir,site_index,{0,0,0,0}).adjoint();
+      temp4 = boundary_condition(L_in,dir,site_index,{0,0,0,0}) * boundary_condition(L_in,temp_dir,site_index,jump4).adjoint() * boundary_condition(L_in,dir,site_index,jump3).adjoint() * boundary_condition(L_in,temp_dir,site_index,jump3);
+      std::fill(std::begin(jump2),std::end(jump2),0);
+      std::fill(std::begin(jump3),std::end(jump3),0);
+      std::fill(std::begin(jump4),std::end(jump4),0);
+  }
+  traced_part = (temp1 - temp2 - temp3 + temp4).trace();
+  subtotal1 = 2.0d*(temp1 - temp2 - temp3 + temp4) - traced_part * Iden;
 
+  temp1 = boundary_condition(L_in,dir,site_index,{0,0,0,0}) * boundary_condition(L_in,4,site_index,jump1) * boundary_condition(L_in,dir,site_index,{0,0,0,0}).adjoint()* boundary_condition(L_in,4,site_index,{0,0,0,0});
+  temp2 = boundary_condition(L_in,4,site_index,{0,0,0,0}) * boundary_condition(L_in,dir,site_index,{0,0,0,0}) * boundary_condition(L_in,4,site_index,jump1)* boundary_condition(L_in,dir,site_index,{0,0,0,0}).adjoint();
+  subtotal2 = temp1 - temp2;
+  return subtotal1 * complex(0.0,1.0/(g*g)) + subtotal2 * complex(0.0,0.5);
+}
 
 
 const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const
 {
-    matrix_complex temp1, temp2, temp3,I;
+    matrix_complex temp1, temp2, temp3,Iden;
     int temp_dir;
-    temp1.setIdentity();
-    temp2.setIdentity();
-    temp3.setIdentity();
-    I.setIdentity();
+    double traced_part;
+    temp1.setZero();
+    temp2.setZero();
+    temp3.setZero();
+    Iden.setIdentity();
 
     FORALLDIR(temp_dir)
     {
       int jump1[4] = {0}, jump2[4] ={0};
-      jump1[temp_dir] += 1;
-      jump2[temp_dir] -= 1;
-      temp1 += boundary_condition(L_in,4,index,{0,0,0,0});
+      jump1[temp_dir]++;
+      jump2[temp_dir]--;
       temp2 += boundary_condition(L_in,temp_dir,index,{0,0,0,0}) *  boundary_condition(L_in,4,index,jump1) * boundary_condition(L_in,temp_dir,index,{0,0,0,0}).adjoint();
-      temp2 += boundary_condition(L_in,temp_dir,index,jump2).adjoint() *  boundary_condition(L_in,4,index,jump2)* boundary_condition(L_in,temp_dir,index,jump2);
+      temp3 += boundary_condition(L_in,temp_dir,index,jump2).adjoint() *  boundary_condition(L_in,4,index,jump2)* boundary_condition(L_in,temp_dir,index,jump2);
     }
+    temp1 +=8.0*L_in.lambda* boundary_condition(L_in,4,index,{0,0,0,0});
+    temp1 = (temp1*(temp1*temp1).trace() + 4*m2*temp1+ 32*temp1  );
+    traced_part = 2.0 * (temp2 + temp3).trace().real();
+    return temp1 - 4*(temp2 + temp3) + traced_part * Iden;
 }
 
-
-
 //Observables
-double simulation::averagePlaquettes() const;//
+double simulation::averagePlaquettes() const
+{
+  int dir1,dir2;
+  double subtotal = 0.0d;
+  unsigned long int site_index;
+  FORALLDIRLESSTHAN(dir1,dir2)
+    subtotal += plaquette(site_index,dir1,dir2).trace().real();
+  return subtotal / static_cast<double>(nsites)
+}
 //Setup functions
 void simulation::setupBoundaryConditions()
 {
