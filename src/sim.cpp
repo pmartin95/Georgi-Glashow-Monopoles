@@ -232,7 +232,7 @@ double simulation::georgiGlashowHamiltonian(lattice * L_in, Plattice *P_in) cons
   field_total = momenta_matrix.trace().real()/2.0;
 }
 
-const matrix_complex georgiGlashowActionLinkDerivative(long unsigned intsite_index, int dir, const lattice& L_in) const //
+const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned intsite_index, int dir, const lattice& L_in) const //
 {
   matrix_complex temp1,temp2,temp3,temp4,Iden;
   matrix_complex subtotal1,subtotal2;
@@ -265,7 +265,7 @@ const matrix_complex georgiGlashowActionLinkDerivative(long unsigned intsite_ind
 }
 
 
-const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const
+const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const
 {
     matrix_complex temp1, temp2, temp3,Iden;
     int temp_dir;
