@@ -238,16 +238,21 @@ const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int, int di
 
 const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const
 {
-    matrix_complex temp1, temp2, temp3;
+    matrix_complex temp1, temp2, temp3,I;
     int temp_dir;
     temp1.setIdentity();
     temp2.setIdentity();
     temp3.setIdentity();
+    I.setIdentity();
 
     FORALLDIR(temp_dir)
     {
+      int jump1[4] = {0}, jump2[4] ={0};
+      jump1[temp_dir] += 1;
+      jump2[temp_dir] -= 1;
       temp1 += boundary_condition(L_in,4,index,{0,0,0,0});
-      temp2 += boundary_condition(L_in,4,index,0,0) boundary_condition(L_in,4,index,0,0) boundary_condition(L_in,4,index,0,0);
+      temp2 += boundary_condition(L_in,temp_dir,index,{0,0,0,0}) *  boundary_condition(L_in,4,index,jump1) * boundary_condition(L_in,temp_dir,index,{0,0,0,0}).adjoint();
+      temp2 += boundary_condition(L_in,temp_dir,index,jump2).adjoint() *  boundary_condition(L_in,4,index,jump2)* boundary_condition(L_in,temp_dir,index,jump2);
     }
 }
 
@@ -282,14 +287,14 @@ void simulation::setupBoundaryConditions( char boundaryType)
       boundary_condition = &simulation::periodicBoundaryCondition;
   }
 }
-void simulation::setupParams(int m2_in,int lambda_in, int g_in)
+void simulation::setupParams(double m2_in,double lambda_in, double g_in)
 {
   m2 = m2_in;
   lambda = lambda_in;
   g = g_in;
 }
 
-void simulation::setupParams(int m2_in)
+void simulation::setupParams(double m2_in)
 {
   m2 = m2_in;
 }

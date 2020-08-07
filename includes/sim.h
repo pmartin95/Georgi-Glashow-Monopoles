@@ -41,8 +41,8 @@ public:
   //Setup functions
   void setupBoundaryConditions();
   void setupBoundaryConditions( char boundaryType);
-  void setupParams(int m2_in,int lambda_in, int g_in);
-  void setupParams(int m2_in);
+  void setupParams(double m2_in,double lambda_in, double g_in); //Wait, why did I have these args as int?? Fix this later
+  void setupParams(double m2_in);
   const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
   //const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
   //const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
