@@ -1,8 +1,4 @@
-#include <chrono>
-#include <random>
-#include <iostream>
-#include <complex>
-#include <cmath>
+#pragma once
 #include "lattice.h"
 
 #ifndef _RAND_
@@ -10,10 +6,9 @@
 
 unsigned seedGen();
 
-const matrix_complex normalHermitianMatrix( URNG& g ); //Also traceless
-const matrix_complex uniformSU2Matrix( URNG& g );
-const double uniformReal(URNG& g);
-const double uniformReal(URNG& g, double low, double high);
-
+const matrix_complex normalHermitianMatrix( std::mt19937_64& g ); //Also traceless
+const matrix_complex uniformSU2Matrix( std::mt19937_64& g );
+const double uniformReal(std::mt19937_64& g);
+const double uniformReal(std::mt19937_64& g, double low, double high);
 
 #endif
