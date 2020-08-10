@@ -176,7 +176,7 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) 
   int i,j;
   int jumpNone[4] = {0,0,0,0};
   long unsigned int temp_index;
-  matrix_complex phi  = ((*this).*boundary_condition)(L,4,site_index,jumpNone);
+  matrix_complex phi  = matCall(L,4,site_index,jumpNone);
   matrix_complex phi_temp;
   matrix_complex link1,link2, link3, link4;
 
@@ -185,8 +185,8 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) 
   {
     int jump1[4] = {0};
     jump1[i]+=1;
-    phi_temp = ((*this).*boundary_condition)(L,4, site_index, jump1);
-    link1 = ((*this).*boundary_condition)(L,i,site_index,jumpNone);
+    phi_temp = matCall(L,4, site_index, jump1);
+    link1 = matCall(L,i,site_index,jumpNone);
     total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
   }
   FORALLDIRLESSTHAN(i,j)
@@ -206,7 +206,7 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
   int i,j;
   int jumpNone[4] = {0,0,0,0};
   long unsigned int temp_index;
-  matrix_complex phi  = ((*this).*boundary_condition)(L_in,4,site_index,jumpNone);
+  matrix_complex phi  = matCall(L_in,4,site_index,jumpNone);
   matrix_complex phi_temp;
   matrix_complex link1,link2, link3, link4;
 
@@ -215,8 +215,8 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
   {
     int jump1[4] = {0};
     jump1[i]+=1;
-    phi_temp = ((*this).*boundary_condition)(L_in,4, site_index, jump1);
-    link1 = ((*this).*boundary_condition)(L_in,i,site_index,jumpNone);
+    phi_temp = matCall(L_in,4, site_index, jump1);
+    link1 = matCall(L_in,i,site_index,jumpNone);
     total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
   }
   FORALLDIRLESSTHAN(i,j)
@@ -283,10 +283,10 @@ const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned
       jump3[temp_dir]--;
       jump4[dir]++;
       jump4[temp_dir]--;
-      temp1 = ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone) * ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump1) * ((*this).*boundary_condition)(L_in,dir,site_index,jump2).adjoint() * ((*this).*boundary_condition)(L_in,temp_dir,site_index,jumpNone).adjoint();
-      temp2 = ((*this).*boundary_condition)(L_in,temp_dir,site_index,jumpNone) * ((*this).*boundary_condition)(L_in,dir,site_index,jump2) * ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump1).adjoint() * ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone).adjoint();
-      temp3 = ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump3).adjoint() * ((*this).*boundary_condition)(L_in,dir,site_index,jump3) * ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump4) * ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone).adjoint();
-      temp4 = ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone) * ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump4).adjoint() * ((*this).*boundary_condition)(L_in,dir,site_index,jump3).adjoint() * ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump3);
+      temp1 = matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump1) * matCall(L_in,dir,site_index,jump2).adjoint() * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
+      temp2 = matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,dir,site_index,jump2) * matCall(L_in,temp_dir,site_index,jump1).adjoint() * matCall(L_in,dir,site_index,jumpNone).adjoint();
+      temp3 = matCall(L_in,temp_dir,site_index,jump3).adjoint() * matCall(L_in,dir,site_index,jump3) * matCall(L_in,temp_dir,site_index,jump4) * matCall(L_in,dir,site_index,jumpNone).adjoint();
+      temp4 = matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump4).adjoint() * matCall(L_in,dir,site_index,jump3).adjoint() * matCall(L_in,temp_dir,site_index,jump3);
       std::fill(std::begin(jump2),std::end(jump2),0);
       std::fill(std::begin(jump3),std::end(jump3),0);
       std::fill(std::begin(jump4),std::end(jump4),0);
@@ -294,8 +294,8 @@ const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned
   traced_part = (temp1 - temp2 - temp3 + temp4).trace();
   subtotal1 = 2.0d*(temp1 - temp2 - temp3 + temp4) - traced_part * Iden;
 
-  temp1 = ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone) * ((*this).*boundary_condition)(L_in,4,site_index,jump1) * ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone).adjoint()* ((*this).*boundary_condition)(L_in,4,site_index,jumpNone);
-  temp2 = ((*this).*boundary_condition)(L_in,4,site_index,jumpNone) * ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone) * ((*this).*boundary_condition)(L_in,4,site_index,jump1)* ((*this).*boundary_condition)(L_in,dir,site_index,jumpNone).adjoint();
+  temp1 = matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint()* matCall(L_in,4,site_index,jumpNone);
+  temp2 = matCall(L_in,4,site_index,jumpNone) * matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1)* matCall(L_in,dir,site_index,jumpNone).adjoint();
   subtotal2 = temp1 - temp2;
   return subtotal1 * complex<double>(0.0,1.0/(g*g)) + subtotal2 * complex<double>(0.0,0.5);
 }
@@ -317,10 +317,10 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
       int jump1[4] = {0}, jump2[4] ={0};
       jump1[temp_dir]++;
       jump2[temp_dir]--;
-      temp2 += ((*this).*boundary_condition)(L_in,temp_dir,site_index,jumpNone) *  ((*this).*boundary_condition)(L_in,4,site_index,jump1) * ((*this).*boundary_condition)(L_in,temp_dir,site_index,jumpNone).adjoint();
-      temp3 += ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump2).adjoint() *  ((*this).*boundary_condition)(L_in,4,site_index,jump2)* ((*this).*boundary_condition)(L_in,temp_dir,site_index,jump2);
+      temp2 += matCall(L_in,temp_dir,site_index,jumpNone) *  matCall(L_in,4,site_index,jump1) * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
+      temp3 += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
     }
-    temp1 +=8.0*lambda* ((*this).*boundary_condition)(L_in,4,site_index,jumpNone);
+    temp1 +=8.0*lambda* matCall(L_in,4,site_index,jumpNone);
     temp1 = (temp1*(temp1*temp1).trace() + 4*m2*temp1+ 32*temp1  );
     traced_part = 2.0 * (temp2 + temp3).trace().real();
     return temp1 - 4*(temp2 + temp3) + traced_part * Iden;
@@ -430,13 +430,13 @@ const matrix_complex simulation::plaquette(long unsigned site_index, int dir1, i
   matrix_complex u1, u2, u3, u4;
   int jump1[4] ={0}, jump2[4]={0}, jump3[4]={0}, jump4[4]={0};
   jump1[dir1] = 0;
-  u1 = ((*this).*boundary_condition)(L,dir1, site_index,jump1);
+  u1 = matCall(L,dir1, site_index,jump1);
   jump2[dir1] = 1;
-  u2 = ((*this).*boundary_condition)(L,dir2, site_index,jump2);
+  u2 = matCall(L,dir2, site_index,jump2);
   jump3[dir2] = 1;
-  u3 = ((*this).*boundary_condition)(L,dir1, site_index,jump3).adjoint();
+  u3 = matCall(L,dir1, site_index,jump3).adjoint();
   jump4[dir2] = 0;
-  u4 = ((*this).*boundary_condition)(L,dir2, site_index,jump4).adjoint();
+  u4 = matCall(L,dir2, site_index,jump4).adjoint();
 
   return u1*u2*u3*u4;
 }
@@ -447,13 +447,13 @@ const matrix_complex simulation::plaquette(const lattice& L_in,long unsigned sit
   int jump1[4] ={0}, jump2[4]={0}, jump3[4]={0}, jump4[4]={0};
 
   jump1[dir1] = 0;
-  u1 = ((*this).*boundary_condition)(L_in,dir1, site_index,jump1);
+  u1 = matCall(L_in,dir1, site_index,jump1);
   jump2[dir1] = 1;
-  u2 = ((*this).*boundary_condition)(L_in,dir2, site_index,jump2);
+  u2 = matCall(L_in,dir2, site_index,jump2);
   jump3[dir2] = 1;
-  u3 = ((*this).*boundary_condition)(L_in,dir1, site_index,jump3).adjoint();
+  u3 = matCall(L_in,dir1, site_index,jump3).adjoint();
   jump4[dir2] = 0;
-  u4 = ((*this).*boundary_condition)(L_in,dir2, site_index,jump4).adjoint();
+  u4 = matCall(L_in,dir2, site_index,jump4).adjoint();
 
   return u1*u2*u3*u4;
 }
