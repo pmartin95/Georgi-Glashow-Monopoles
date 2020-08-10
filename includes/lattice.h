@@ -4,7 +4,7 @@
 #define __LATTICE__
 #include<Eigen/Dense>
 #include<random>
-#define DEFAULT_LATTICE_SIZE 16
+#define DEFAULT_LATTICE_SIZE 8
 #define FORALLDIR(i) for(i = 0; i<4;i++)
 #define FORALLDIRBUT(i,dir) for(i=0;i<4;i++) if(i != dir)
 #define FORALLDIRLESSTHAN(i,j) for( j = 0; j<4;j++) for(i=0;i<j;i++)
@@ -60,6 +60,7 @@ public:
   lattice(std::mt19937_64& g);
   lattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g);
   ~lattice();
+  lattice& operator =(const lattice& L_in);
   //Utilty functions
   void infoPrint() const;
   long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
@@ -86,6 +87,7 @@ public:
   Plattice(std::mt19937_64& g, const lattice& L_in); //
   Plattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g);
   ~Plattice();
+  Plattice& operator =(const Plattice& P_in);
   //Utilty functions
   void infoPrint() const;
   long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
