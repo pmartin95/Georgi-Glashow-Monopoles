@@ -32,7 +32,7 @@ lattice_site::lattice_site(std::mt19937_64& g)
 {
   int i;
   FORALLDIR(i)
-  link[i] = uniformSU2Matrix(g);
+    link[i] = uniformSU2Matrix(g);
   higgs.setZero();
 }
 
@@ -190,6 +190,35 @@ lattice::~lattice()
   delete [] site;
 }
 
+lattice& lattice::operator =(const lattice& L_in)
+{
+  if(this == &L_in)
+  {
+    return *this;
+  }
+  else
+  {
+    nt = L_in.nt;
+    nx = L_in.nx;
+    ny = L_in.ny;
+    nz = L_in.nz;
+
+    ns[0] = nt;
+    ns[1] = nx;
+    ns[2] = ny;
+    ns[3] = nz;
+
+    nsites = nt * nx * ny * nz;
+    delete [] site;
+    site = new lattice_site[nsites];
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = L_in.site[i];
+    }
+    return *this;
+  }
+}
+
 void lattice::infoPrint() const
 {
   std::cout << "This is a " << nt << "x" << nx << "x" << ny << "x" << nz << " lattice.\n";
@@ -263,7 +292,7 @@ Plattice_site::Plattice_site()
 {
   int i;
   FORALLDIR(i)
-    link[i].setIdentity();
+    link[i].setZero();
   higgs.setZero();
 }
 
@@ -422,6 +451,35 @@ Plattice::Plattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g)
 Plattice::~Plattice()
 {
   delete [] site;
+}
+
+Plattice& Plattice::operator =(const Plattice& P_in)
+{
+  if(this == &P_in)
+  {
+    return *this;
+  }
+  else
+  {
+    nt = P_in.nt;
+    nx = P_in.nx;
+    ny = P_in.ny;
+    nz = P_in.nz;
+
+    ns[0] = nt;
+    ns[1] = nx;
+    ns[2] = ny;
+    ns[3] = nz;
+
+    nsites = nt * nx * ny * nz;
+    delete [] site;
+    site = new Plattice_site[nsites];
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = P_in.site[i];
+    }
+    return *this;
+  }
 }
 
 void Plattice::infoPrint() const

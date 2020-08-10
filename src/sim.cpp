@@ -108,11 +108,16 @@ simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice&
   setupBoundaryConditions(boundaryType);
 }
 
+simulation::~simulation()
+{
+}
+
 //HMC routines
 void simulation::runLeapfrogSimulation()
 {
   for(int i;i<steps;i++)
     leapfrogOneStep();
+
   if(metropolisDecision())
   {
     L = Lcopy;
@@ -154,9 +159,14 @@ bool simulation::metropolisDecision()
 {
   double expResult;
   double randomDecider;
+  double H_new, H_old;
   //should return true if to accept configuration, otherwise replace with copy and start over
-  expResult = std::min(exp((georgiGlashowHamiltonian(L,endMomentum) - georgiGlashowHamiltonian(Lcopy,startMomentum))), 1.0);
+  H_new = georgiGlashowHamiltonian(Lcopy,endMomentum);
+  H_old = georgiGlashowHamiltonian(L,startMomentum);
+  std::cout << "H new: " << H_new << " H old: " << H_old << std::endl;
+  expResult = std::min(exp(H_old - H_new), 1.0);
   randomDecider = uniformReal(randomGenerator);
+  std::cout << "exp: " << expResult << "  random: " << randomDecider << std::endl;
   if(expResult > randomDecider)
   {
     nAccepts++;
@@ -221,7 +231,7 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
   }
   FORALLDIRLESSTHAN(i,j)
   {
-    subtotal += 2.0 - (plaquette(site_index, i,j) ).trace().real();
+    subtotal += 2.0 - (plaquette(L_in,site_index, i,j) ).trace().real(); //!!!
   }
   total += subtotal * 2.0 /(g*g);
   total += m2 *(phi * phi).trace().real();
@@ -245,7 +255,7 @@ double simulation::georgiGlashowAction(const lattice& L_in) const
   return total;
 }
 
-double simulation::georgiGlashowHamiltonian(lattice& L_in, Plattice& P_in) const
+double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice& P_in) const
 {
   matrix_complex momenta_matrix;
   double field_total, momenta_total;
@@ -265,6 +275,11 @@ double simulation::georgiGlashowHamiltonian(lattice& L_in, Plattice& P_in) const
   }
   momenta_total = momenta_matrix.trace().real()/2.0;
   return field_total + momenta_total;
+}
+
+double simulation::Hamiltonian() const
+{
+  return georgiGlashowHamiltonian(L,startMomentum) /L.nsites ;
 }
 
 const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const //
@@ -332,10 +347,26 @@ double simulation::averagePlaquettes() const
   int dir1,dir2;
   double subtotal = 0.0d;
   unsigned long int site_index;
-  FORALLDIRLESSTHAN(dir1,dir2)
-    subtotal += plaquette(site_index,dir1,dir2).trace().real();
+  for(long unsigned int i = 0; i< L.nsites;i++)
+  {
+    FORALLDIRLESSTHAN(dir1,dir2)
+      subtotal += plaquette(site_index,dir1,dir2).trace().real();    
+  }
+
   return subtotal / static_cast<double>(L.nsites);
 }
+
+const matrix_complex simulation::averagePhi() const
+{
+  long unsigned int i;
+  matrix_complex subtotal;
+  subtotal.setZero();
+  for(i = 0; i< L.nsites; i++)
+    subtotal += L.site[i].higgs;
+  subtotal = subtotal / static_cast<double>(L.nsites);
+  return subtotal;
+}
+
 //Setup functions
 void simulation::setupBoundaryConditions()
 {
@@ -388,7 +419,7 @@ const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,i
   bool shouldBreak;
   FORALLDIR(i)
   {
-    shouldBreak = jump[i] != 0;
+    shouldBreak = (jump[i] != 0);
     if(shouldBreak)
       break;
   }
@@ -406,7 +437,7 @@ const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,i
   FORALLDIR(dir)
   {
     x[dir] += jump[dir];
-  if(x[dir] >= L_in.ns[dir])
+  if(x[dir] >= L_in.ns[dir] || x[dir] < 0)
     x[dir] = (x[dir] + L_in.ns[dir])%(L_in.ns[dir]);
   }
   new_index = L_in.coordinateToIndex(x);
@@ -420,10 +451,23 @@ const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,i
 void simulation::printAcceptance() const
 {
   if(nAccepts + nRejects > 0)
-    std::cout << static_cast<float>(nAccepts)/ static_cast<float>(nAccepts+nRejects) <<std::endl;
+  {
+    std::cout << static_cast<float>(nAccepts)/ static_cast<float>(nAccepts+nRejects) * 100 << "%\n";
+    std::cout << nAccepts << " accepts, " << nRejects << " rejects.\n";
+  }
   else
     std::cout << "There have been no acceptances or rejections.\n";
 }
+
+void simulation::printSite(long unsigned int site_index) const
+{
+  std::cout << L.site[site_index].link[0] <<std::endl;
+  std::cout << L.site[site_index].link[1] <<std::endl;
+  std::cout << L.site[site_index].link[2] <<std::endl;
+  std::cout << L.site[site_index].link[3] <<std::endl;
+  std::cout << L.site[site_index].higgs <<std::endl;
+}
+
 
 const matrix_complex simulation::plaquette(long unsigned site_index, int dir1, int dir2) const
 {
