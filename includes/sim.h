@@ -12,6 +12,7 @@
 #define DEFAULT_LAMBDA 1.0
 #define DEFAULT_M2 1.0
 #define DEFAULT_STARTING_G 1.0
+#define matCall ((*this).*boundary_condition) 
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
 
 class simulation{
