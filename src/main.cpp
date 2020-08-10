@@ -1,7 +1,6 @@
-#include <iostream>
-#include <complex>
 #include "lattice.h"
 #include "rand.h"
+#include "sim.h"
 
 int main()
 {

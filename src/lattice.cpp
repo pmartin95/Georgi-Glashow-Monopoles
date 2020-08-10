@@ -1,6 +1,9 @@
 #include <iostream>
 #include <complex>
+#include <cstdlib>
+#include<Eigen/Dense>
 #include "lattice.h"
+#include "rand.h"
 
 lattice_site::lattice_site()
 {
@@ -25,7 +28,7 @@ lattice_site::lattice_site(const lattice_site& site1)
   higgs = site1.higgs;
 }
 
-lattice_site::lattice_site(URNG& g)
+lattice_site::lattice_site(std::mt19937_64& g)
 {
   int i;
   FORALLDIR(i)
@@ -141,7 +144,7 @@ lattice::lattice(const lattice_site& site1)
   }
 }
 
-lattice::lattice(URNG& g)
+lattice::lattice(std::mt19937_64& g)
 {
   nt = DEFAULT_LATTICE_SIZE;
   nx = DEFAULT_LATTICE_SIZE;
@@ -155,12 +158,12 @@ lattice::lattice(URNG& g)
   site = new lattice_site[nsites];
   for(long unsigned int i = 0; i < nsites;i++)
   {
-    site[i] = lattice_site(URNG& g);
+    site[i] = lattice_site(g);
   }
 }
 
 
-lattice::lattice(int Nt, int Nx, int Ny, int Nz,URNG& g)
+lattice::lattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g)
 {
   nt = Nt;
   nx = Nx;
@@ -177,7 +180,7 @@ lattice::lattice(int Nt, int Nx, int Ny, int Nz,URNG& g)
   site = new lattice_site[nsites];
   for(long unsigned int i = 0; i < nsites;i++)
   {
-    site[i] = lattice_site(URNG& g);
+    site[i] = lattice_site(g);
   }
 }
 
@@ -256,6 +259,13 @@ void lattice::indexToCoordinate(long unsigned int index,int& t, int& x, int& y, 
 
 //////// Here below needs ot be looked over
 // Need to redo functions for P lattice sites
+Plattice_site::Plattice_site()
+{
+  int i;
+  FORALLDIR(i)
+    link[i].setIdentity();
+  higgs.setZero();
+}
 
 Plattice_site::Plattice_site(const matrix_complex& link0,const matrix_complex& link1, const matrix_complex& link2, const matrix_complex& link3, const matrix_complex& higg_temp  )
 {
@@ -273,7 +283,7 @@ Plattice_site::Plattice_site(const Plattice_site& site1)
   higgs = site1.higgs;
 }
 
-Plattice_site::Plattice_site(URNG& g)
+Plattice_site::Plattice_site(std::mt19937_64& g)
 {
   int i;
   FORALLDIR(i)
@@ -314,6 +324,25 @@ Plattice_site& Plattice_site::operator =(const Plattice_site& site1)
   }
 }
 
+
+Plattice::Plattice()
+{
+  nt = DEFAULT_LATTICE_SIZE;
+  nx = DEFAULT_LATTICE_SIZE;
+  ny = DEFAULT_LATTICE_SIZE;
+  nz = DEFAULT_LATTICE_SIZE;
+  nsites = nt * nx * ny * nz;
+  ns[0] = nt;
+  ns[1] = nx;
+  ns[2] = ny;
+  ns[3] = nz;
+  site = new Plattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
+    site[i] = Plattice_site();
+  }
+}
+
 Plattice::Plattice(const Plattice& Plattice1)
 {
   nt = Plattice1.nt;
@@ -328,11 +357,11 @@ Plattice::Plattice(const Plattice& Plattice1)
   site = new Plattice_site[nsites];
   for(long unsigned int i = 0; i < nsites;i++)
   {
-    site[i] = Plattice1.L[i];
+    site[i] = Plattice1.site[i];
   }
 }
 
-Plattice::Plattice(URNG& g)
+Plattice::Plattice(std::mt19937_64& g)
 {
   nt = DEFAULT_LATTICE_SIZE;
   nx = DEFAULT_LATTICE_SIZE;
@@ -346,11 +375,11 @@ Plattice::Plattice(URNG& g)
   site = new Plattice_site[nsites];
   for(long unsigned int i = 0; i < nsites;i++)
   {
-    site[i] = Plattice_site(URNG& g);
+    site[i] = Plattice_site(g);
   }
 }
 
-Plattice(URNG& g, const lattice& L_in)
+Plattice::Plattice(std::mt19937_64& g, const lattice& L_in)
 {
   nt = L_in.nt;
   nx = L_in.nx;
@@ -364,11 +393,11 @@ Plattice(URNG& g, const lattice& L_in)
   site = new Plattice_site[nsites];
   for(long unsigned int i = 0; i < nsites;i++)
   {
-    site[i] = Plattice_site(URNG& g);
+    site[i] = Plattice_site(g);
   }
 }
 
-Plattice::Plattice(int Nt, int Nx, int Ny, int Nz,URNG& g)
+Plattice::Plattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g)
 {
   nt = Nt;
   nx = Nx;
@@ -385,7 +414,7 @@ Plattice::Plattice(int Nt, int Nx, int Ny, int Nz,URNG& g)
   site = new Plattice_site[nsites];
   for(long unsigned int i = 0; i < nsites;i++)
   {
-    site[i] = Plattice_site(URNG& g);
+    site[i] = Plattice_site(g);
   }
 }
 
