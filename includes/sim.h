@@ -7,8 +7,8 @@
 #include <random>
 #include "lattice.h"
 #include "rand.h"
-#define DEFAULT_STEPS 20
-#define DEFAULT_STEP_SIZE 0.5
+#define DEFAULT_STEPS 2
+#define DEFAULT_STEP_SIZE 0.05
 #define DEFAULT_LAMBDA 0.1
 #define DEFAULT_M2 -1.0
 #define DEFAULT_STARTING_G 0.4472135955
@@ -52,6 +52,7 @@ public:
   //const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
   void printAcceptance() const;
   void printSite(long unsigned int site_index) const;
+  void printDerivatives(long unsigned int site_index) const;
 private:
   int steps;
   int nAccepts, nRejects;
