@@ -33,7 +33,7 @@ lattice_site::lattice_site(std::mt19937_64& g)
   int i;
   FORALLDIR(i)
     link[i] = uniformSU2Matrix(g);
-  higgs.setZero();
+  higgs =normalHermitianMatrix(g);
 }
 
 const matrix_complex& lattice_site::output() const

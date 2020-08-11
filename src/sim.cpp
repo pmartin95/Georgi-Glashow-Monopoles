@@ -115,7 +115,7 @@ simulation::~simulation()
 //HMC routines
 void simulation::runLeapfrogSimulation()
 {
-  for(int i;i<steps;i++)
+  for(int i = 0;i<steps;i++)
     leapfrogOneStep();
 
   if(metropolisDecision())
@@ -140,7 +140,7 @@ void simulation::leapfrogOneStep()
     FORALLDIR(dir)
     {
       endMomentum.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
-      Lcopy.site[site_index].link[dir] = Lcopy.site[site_index].link[dir] + stepSize*endMomentum.site[site_index].link[dir] ;
+      Lcopy.site[site_index].link[dir] = Lcopy.site[site_index].link[dir] * ((complex<double>(0.0d,1.0d) *stepSize*endMomentum.site[site_index].link[dir] )).exp() ;
     }
     endMomentum.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
     Lcopy.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * endMomentum.site[site_index].higgs;
@@ -163,10 +163,11 @@ bool simulation::metropolisDecision()
   //should return true if to accept configuration, otherwise replace with copy and start over
   H_new = georgiGlashowHamiltonian(Lcopy,endMomentum);
   H_old = georgiGlashowHamiltonian(L,startMomentum);
-  std::cout << "H new: " << H_new << " H old: " << H_old << std::endl;
+  //std::cout << "H new: " << H_new << " H old: " << H_old << std::endl;
+  std::cout << "delta H: " << H_new-H_old << std::endl;
   expResult = std::min(exp(H_old - H_new), 1.0);
   randomDecider = uniformReal(randomGenerator);
-  std::cout << "exp: " << expResult << "  random: " << randomDecider << std::endl;
+  //std::cout << "exp: " << expResult << "  random: " << randomDecider << std::endl;
   if(expResult > randomDecider)
   {
     nAccepts++;
@@ -266,7 +267,7 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
   momenta_matrix.setZero();
 
   field_total = georgiGlashowAction(L_in);
-
+  std::cout << "Field total: " << field_total << std::endl;
   for(site_index=0;site_index < L_in.nsites; site_index++)
   {
     FORALLDIR(i)
@@ -274,6 +275,7 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
     momenta_matrix +=   P_in.site[site_index].higgs.transpose() *  P_in.site[site_index].higgs;
   }
   momenta_total = momenta_matrix.trace().real()/2.0;
+  std::cout << "Momenta total: " << momenta_total << std::endl;
   return field_total + momenta_total;
 }
 
@@ -350,7 +352,7 @@ double simulation::averagePlaquettes() const
   for(long unsigned int i = 0; i< L.nsites;i++)
   {
     FORALLDIRLESSTHAN(dir1,dir2)
-      subtotal += plaquette(site_index,dir1,dir2).trace().real();    
+      subtotal += plaquette(site_index,dir1,dir2).trace().real();
   }
 
   return subtotal / static_cast<double>(L.nsites);
@@ -465,9 +467,16 @@ void simulation::printSite(long unsigned int site_index) const
   std::cout << L.site[site_index].link[1] <<std::endl;
   std::cout << L.site[site_index].link[2] <<std::endl;
   std::cout << L.site[site_index].link[3] <<std::endl;
-  std::cout << L.site[site_index].higgs <<std::endl;
+  std::cout << L.site[site_index].higgs <<std::endl <<std::endl;
 }
 
+void simulation::printDerivatives(long unsigned int site_index) const
+{
+  int dir;
+  FORALLDIR(dir)
+    std::cout << georgiGlashowActionLinkDerivative(site_index,dir, L) << std::endl;
+  std::cout << georgiGlashowActionPhiDerivative(site_index, L) << std::endl << std::endl;
+}
 
 const matrix_complex simulation::plaquette(long unsigned site_index, int dir1, int dir2) const
 {
