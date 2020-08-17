@@ -11,7 +11,8 @@ int main()
   simulation sim1;
   sim1.printSite(10);
   sim1.printDerivatives(10);
-  sim1.runLeapfrogSimulation();
+  for(int i=0; i < 10;i++)
+    sim1.runLeapfrogSimulation();
   sim1.printSite(10);
     //std::cout << "Hamiltonian: " << sim1.Hamiltonian() << std::endl;
   sim1.printAcceptance();
