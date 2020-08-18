@@ -62,6 +62,8 @@ public:
   ~lattice();
   lattice& operator =(const lattice& L_in);
   //Utilty functions
+  void setLatticeSite(long unsigned int site_index, const matrix_complex& A);
+  void setLatticeSite(long unsigned int site_index,int dir, const matrix_complex& A);
   void infoPrint() const;
   long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
   long unsigned int coordinateToIndex(int (&coordinates)[4]) const;

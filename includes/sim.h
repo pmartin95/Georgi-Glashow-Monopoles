@@ -11,7 +11,7 @@
 #define DEFAULT_STEP_SIZE 0.001
 #define DEFAULT_LAMBDA 0.1
 #define DEFAULT_M2 0.1
-#define DEFAULT_STARTING_G 0.4472135955
+#define DEFAULT_STARTING_G  1.318 //    0.4472135955
 #define matCall ((*this).*boundary_condition)
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
 
@@ -22,10 +22,12 @@ public:
   simulation(const simulation& sim);
   simulation(const simulation& sim, char boundaryType);
   simulation(double m2_in,double lambda_in,double g_in);
+  simulation(const lattice& L_in);
   simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in);
   simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in, char boundaryType);
   ~simulation();
   //HMC routines
+  void initializeHMC();
   void runLeapfrogSimulation();
   void leapfrogOneStep();
   bool metropolisDecision();
@@ -41,6 +43,7 @@ public:
   //Observables
   double averagePlaquettes() const; //
   const matrix_complex averagePhi() const;
+  const matrix_complex averagePhi2() const;
   //Setup functions
   void setupBoundaryConditions();
   void setupBoundaryConditions( char boundaryType);
