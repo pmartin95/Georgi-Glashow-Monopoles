@@ -9,4 +9,4 @@ main.exe: $(OBJECTS)
 	$(CC) $(INC) -c -o $@ $<
 
 clean:
-	rm *.o *.exe
+	rm -f *.o *.exe
