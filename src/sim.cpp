@@ -173,15 +173,15 @@ void simulation::leapfrogOneStep()
   {
     //Change the p sign to + instead of -, just to see what happens
     FORALLDIR(dir)
-      P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
-    P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
+      P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] + stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
+    P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs + stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
   }
 
 #pragma omp parallel for private(dir) default(shared)
   for(site_index=0; site_index < L.nsites;site_index++)
   {
     FORALLDIR(dir)
-      L_temp.site[site_index].link[dir] = ((complex<double>(0.0d,1.0d) *stepSize*endMomentum.site[site_index].link[dir] )).exp() * Lcopy.site[site_index].link[dir]  ;
+      L_temp.site[site_index].link[dir] = ((complex<double>(0.0d,-1.0d) *stepSize*endMomentum.site[site_index].link[dir] )).exp() * Lcopy.site[site_index].link[dir]   ;
     L_temp.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * endMomentum.site[site_index].higgs;
   }
 
@@ -191,8 +191,8 @@ void simulation::leapfrogOneStep()
   for(site_index=0; site_index < L.nsites;site_index++)
   {
     FORALLDIR(dir)
-      endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
-    endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
+      endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] + stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
+    endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs + stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
   }
 }
 
@@ -308,7 +308,7 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
   momenta_matrix.setZero();
 
   field_total = georgiGlashowAction(L_in);
-  //std::cout << "Field total: " << field_total << std::endl;
+  // std::cout << "Field total: " << field_total << std::endl;
   for(site_index=0;site_index < L_in.nsites; site_index++)
   {
     FORALLDIR(i)
@@ -316,7 +316,7 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
     momenta_matrix +=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs;
   }
   momenta_total = momenta_matrix.trace().real();
-  //std::cout << "Momenta total: " << momenta_total << std::endl;
+  // std::cout << "Momenta total: " << momenta_total << std::endl;
   return field_total + momenta_total;
 }
 
