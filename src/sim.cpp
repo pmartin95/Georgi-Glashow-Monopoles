@@ -135,7 +135,7 @@ simulation::~simulation()
 //HMC routines
 void simulation::initializeHMC()
 {
-  for(int i = 0;i<1000;i++)
+  for(int i = 0;i< steps;i++)
   {
     leapfrogOneStep();
   }
@@ -325,47 +325,81 @@ double simulation::Hamiltonian() const
 
 const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const //
 {
-  matrix_complex temp1,temp2,temp3,temp4,Iden;
+  matrix_complex topStaple, bottomStaple;
+  matrix_complex temp1,temp2;
+  matrix_complex Ulink;
   matrix_complex subtotal1,subtotal2;
+
   int jump1[4] = {0};
   int jumpNone[4] = {0,0,0,0};
   int temp_dir;
 
-  //complex<double> traced_part;
-  temp1.setZero(); temp2.setZero() ; temp3.setZero(); temp4.setZero();
-  Iden.setIdentity();
+  Ulink = matCall(L_in,dir,site_index,jumpNone);
+  topStaple.setZero(); bottomStaple.setZero();
+  temp1.setZero(); temp2.setZero();
   jump1[dir]++;
+
   FORALLDIRBUT(temp_dir,dir)
   {
       int jump2[4] = {0}, jump3[4] = {0}, jump4[4] = {0};
-      jump2[temp_dir]++;
-      jump3[temp_dir]--;
-      jump4[dir]++;
-      jump4[temp_dir]--;
-      temp1 += matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump1) * matCall(L_in,dir,site_index,jump2).adjoint() * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
-      //std::cout << "Temp1:\n" << temp1 << std::endl;
-      temp2 += matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,dir,site_index,jump2) * matCall(L_in,temp_dir,site_index,jump1).adjoint() * matCall(L_in,dir,site_index,jumpNone).adjoint();
-      //std::cout << "Temp2:\n" << temp2 << std::endl;
-      temp3 += matCall(L_in,temp_dir,site_index,jump3).adjoint() * matCall(L_in,dir,site_index,jump3) * matCall(L_in,temp_dir,site_index,jump4) * matCall(L_in,dir,site_index,jumpNone).adjoint();
-      //std::cout << "Temp3:\n" << temp3 << std::endl;
-      temp4 += matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump4).adjoint() * matCall(L_in,dir,site_index,jump3).adjoint() * matCall(L_in,temp_dir,site_index,jump3);
-      //std::cout << "Temp4:\n" << temp4 << std::endl;
+      jump2[temp_dir]++; jump3[temp_dir]--;
+      jump4[dir]++; jump4[temp_dir]--;
+
+      topStaple += matCall(L_in, site_index,temp_dir,jump1) * matCall(L_in, site_index,dir,jump2).adjoint() * matCall(L_in, site_index,temp_dir,jumpNone).adjoint();
+      bottomStaple += matCall(L_in, site_index,temp_dir,jump4).adjoint() * matCall(L_in, site_index,dir,jump3).adjoint() * matCall(L_in, site_index,temp_dir,jump3);
   }
 
-  //traced_part = (temp1 - temp2 - temp3 + temp4).trace();
-  subtotal1 = 2.0d*(temp1 - temp2 - temp3 + temp4);
-  //- traced_part * Iden;
-  //std::cout << "traced part: " << traced_part << std::endl;
-  //std::cout << "Subtotal 1:\n" << subtotal1 << std::endl;
+  subtotal1 = complex<double>(0.0,1.0/(g*g)) * (  Ulink*(topStaple + bottomStaple)  - (topStaple + bottomStaple).adjoint()  * Ulink.adjoint()          );
 
-  temp1 = matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint() * matCall(L_in,4,site_index,jumpNone);
-  //std::cout << "Temp1:\n" << temp1 << std::endl;
-  temp2 = matCall(L_in,4,site_index,jumpNone) * matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint();
-  //std::cout << "Temp2:\n" << temp2 << std::endl;
-  subtotal2 = temp1 - temp2;
-  //std::cout << "Subtotal 2:\n" << subtotal2 << std::endl;
-  return subtotal1 * complex<double>(0.0,-1.0/(g*g)) + subtotal2 * complex<double>(0.0,1.0);
+  temp1 = Ulink * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint()  ;
+  temp2 = matCall(L_in,4,site_index,jumpNone);
+  subtotal2 = (temp1*temp2 - temp2*temp1) * complex<double>(0.0,2.0);
+  return subtotal1 + subtotal2 ;
 }
+
+// const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const //
+// {
+//   matrix_complex temp1,temp2,temp3,temp4,Iden;
+//   matrix_complex subtotal1,subtotal2;
+//   int jump1[4] = {0};
+//   int jumpNone[4] = {0,0,0,0};
+//   int temp_dir;
+//
+//   //complex<double> traced_part;
+//   temp1.setZero(); temp2.setZero() ; temp3.setZero(); temp4.setZero();
+//   Iden.setIdentity();
+//   jump1[dir]++;
+//   FORALLDIRBUT(temp_dir,dir)
+//   {
+//       int jump2[4] = {0}, jump3[4] = {0}, jump4[4] = {0};
+//       jump2[temp_dir]++;
+//       jump3[temp_dir]--;
+//       jump4[dir]++;
+//       jump4[temp_dir]--;
+//       temp1 += matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump1) * matCall(L_in,dir,site_index,jump2).adjoint() * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
+//       //std::cout << "Temp1:\n" << temp1 << std::endl;
+//       temp2 += matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,dir,site_index,jump2) * matCall(L_in,temp_dir,site_index,jump1).adjoint() * matCall(L_in,dir,site_index,jumpNone).adjoint();
+//       //std::cout << "Temp2:\n" << temp2 << std::endl;
+//       temp3 += matCall(L_in,temp_dir,site_index,jump3).adjoint() * matCall(L_in,dir,site_index,jump3) * matCall(L_in,temp_dir,site_index,jump4) * matCall(L_in,dir,site_index,jumpNone).adjoint();
+//       //std::cout << "Temp3:\n" << temp3 << std::endl;
+//       temp4 += matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump4).adjoint() * matCall(L_in,dir,site_index,jump3).adjoint() * matCall(L_in,temp_dir,site_index,jump3);
+//       //std::cout << "Temp4:\n" << temp4 << std::endl;
+//   }
+//
+//   //traced_part = (temp1 - temp2 - temp3 + temp4).trace();
+//   subtotal1 = 2.0d*(temp1 - temp2 - temp3 + temp4);
+//   //- traced_part * Iden;
+//   //std::cout << "traced part: " << traced_part << std::endl;
+//   //std::cout << "Subtotal 1:\n" << subtotal1 << std::endl;
+//
+//   temp1 = matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint() * matCall(L_in,4,site_index,jumpNone);
+//   //std::cout << "Temp1:\n" << temp1 << std::endl;
+//   temp2 = matCall(L_in,4,site_index,jumpNone) * matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint();
+//   //std::cout << "Temp2:\n" << temp2 << std::endl;
+//   subtotal2 = temp1 - temp2;
+//   //std::cout << "Subtotal 2:\n" << subtotal2 << std::endl;
+//   return subtotal1 * complex<double>(0.0,-1.0/(g*g)) + subtotal2 * complex<double>(0.0,1.0);
+// }
 
 // Let's try out the alternative Phi derivative and see how it works. Otherwise we might have to play with link derivative term
 
