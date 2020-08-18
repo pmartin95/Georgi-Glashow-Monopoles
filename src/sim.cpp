@@ -171,13 +171,17 @@ void simulation::leapfrogOneStep()
 #pragma omp parallel for private(dir) default(shared)
   for(site_index=0; site_index < L.nsites;site_index++)
   {
+    //Change the p sign to + instead of -, just to see what happens
     FORALLDIR(dir)
-    {
-      //Change the p sign to + instead of -, just to see what happens
       P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
-      L_temp.site[site_index].link[dir] = ((complex<double>(0.0d,1.0d) *stepSize*endMomentum.site[site_index].link[dir] )).exp() * Lcopy.site[site_index].link[dir]  ;
-    }
     P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
+  }
+
+#pragma omp parallel for private(dir) default(shared)
+  for(site_index=0; site_index < L.nsites;site_index++)
+  {
+    FORALLDIR(dir)
+      L_temp.site[site_index].link[dir] = ((complex<double>(0.0d,1.0d) *stepSize*endMomentum.site[site_index].link[dir] )).exp() * Lcopy.site[site_index].link[dir]  ;
     L_temp.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * endMomentum.site[site_index].higgs;
   }
 
@@ -187,9 +191,7 @@ void simulation::leapfrogOneStep()
   for(site_index=0; site_index < L.nsites;site_index++)
   {
     FORALLDIR(dir)
-    {
       endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
-    }
     endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
   }
 }
@@ -409,29 +411,19 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
     int temp_dir;
     int jumpNone[4] = {0,0,0,0};
     double traced_part;
-    temp1.setZero();
     temp2.setZero();
     temp3.setZero();
-    Iden.setIdentity();
 
     FORALLDIR(temp_dir)
     {
       int jump1[4] = {0}, jump2[4] ={0};
-      jump1[temp_dir]++;
-      jump2[temp_dir]--;
-      temp2 += matCall(L_in,temp_dir,site_index,jumpNone) *  matCall(L_in,4,site_index,jump1) * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
+      jump1[temp_dir]++;jump2[temp_dir]--;
+      temp2 += matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
       temp3 += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
     }
-    temp1 += matCall(L_in,4,site_index,jumpNone);
-    // if(site_index == 10)
-    // {
-    //   std::cout << "Site " << site_index << " force terms:\n";
-    //   std::cout << "temp1: " << temp1 << "\n\ntemp2:" << temp2 ;
-    //   std::cout << "\n\ntemp3: " << temp3 << std::endl << std::endl;
-    // }
+    temp1 = matCall(L_in,4,site_index,jumpNone);
     temp1 = (8.0 * lambda *temp1*(temp1*temp1).trace() + (4.0*m2*+ 32.0)*temp1  );
-    traced_part = 2.0 * (temp2 + temp3).trace().real();
-    return temp1 - 4*(temp2 + temp3) + traced_part * Iden;
+    return temp1 - 4.0*(temp2 + temp3);
 }
 
 // const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const
