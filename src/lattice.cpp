@@ -20,6 +20,15 @@ lattice_site::lattice_site(const matrix_complex& link0,const matrix_complex& lin
   link[3] = link3;
   higgs = higg_temp;
 }
+lattice_site::lattice_site(const matrix_complex& link_temp, const matrix_complex& higg_temp  )
+{
+  link[0] = link_temp;
+  link[1] = link_temp;
+  link[2] = link_temp;
+  link[3] = link_temp;
+  higgs = higg_temp;
+}
+
 
 lattice_site::lattice_site(const lattice_site& site1)
 {
@@ -218,7 +227,14 @@ lattice& lattice::operator =(const lattice& L_in)
     return *this;
   }
 }
-
+void lattice::setLatticeSite(long unsigned int site_index, const matrix_complex& A)
+{
+  site[site_index].higgs = A;
+}
+void lattice::setLatticeSite(long unsigned int site_index,int dir, const matrix_complex& A)
+{
+  site[site_index].link[dir] = A;
+}
 void lattice::infoPrint() const
 {
   std::cout << "This is a " << nt << "x" << nx << "x" << ny << "x" << nz << " lattice.\n";
