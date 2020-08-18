@@ -10,7 +10,7 @@
 #define DEFAULT_STEPS 1000
 #define DEFAULT_STEP_SIZE 0.001
 #define DEFAULT_LAMBDA 0.1
-#define DEFAULT_M2 0.1
+#define DEFAULT_M2 -0.2
 #define DEFAULT_STARTING_G  1.318 //    0.4472135955
 #define matCall ((*this).*boundary_condition)
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
