@@ -28,7 +28,7 @@ public:
   ~simulation();
   //HMC routines
   void initializeHMC();
-  void runLeapfrogSimulation();
+  double runLeapfrogSimulation();
   void leapfrogOneStep();
   bool metropolisDecision();
   //Action functions
@@ -49,6 +49,7 @@ public:
   void setupBoundaryConditions( char boundaryType);
   void setupParams(double m2_in,double lambda_in, double g_in);
   void setupParams(double m2_in);
+  void setupSteps(int Nsteps);
   void resetMomenta();
   const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]) const;
   //const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
@@ -56,6 +57,7 @@ public:
   void printAcceptance() const;
   void printSite(long unsigned int site_index) const;
   void printDerivatives(long unsigned int site_index) const;
+
 private:
   int steps;
   int nAccepts, nRejects;
