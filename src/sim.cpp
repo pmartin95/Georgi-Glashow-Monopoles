@@ -144,11 +144,11 @@ void simulation::initializeHMC()
   L = Lcopy;
 }
 
-void simulation::runLeapfrogSimulation()
+double simulation::runLeapfrogSimulation()
 {
   for(int i = 0;i<steps;i++)
     leapfrogOneStep();
-
+  double Hdiff = georgiGlashowHamiltonian(L, startMomentum) - georgiGlashowHamiltonian(Lcopy, endMomentum);
   if(metropolisDecision())
   {
     L = Lcopy;
@@ -159,6 +159,7 @@ void simulation::runLeapfrogSimulation()
     Lcopy = L;
     resetMomenta();
   }
+  return Hdiff;
 }
 
 void simulation::leapfrogOneStep()
@@ -530,7 +531,11 @@ void simulation::setupParams(double m2_in)
 {
   m2 = m2_in;
 }
-
+void simulation::setupSteps(int Nsteps)
+{
+  steps = Nsteps;
+  stepSize = 1.0d/static_cast<double>(steps);
+}
 void simulation::resetMomenta()
 {
   startMomentum = Plattice(randomGenerator);
