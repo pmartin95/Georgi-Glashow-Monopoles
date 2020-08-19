@@ -47,7 +47,7 @@ int main()
 ofstream hot_data, cold_data;
 hot_data.open("hot_data1.txt",std::ios::out);
 cold_data.open("cold_data1.txt",std::ios::out);
-for(int i = 0;i <4; i++)
+for(int i = 0;i <3; i++)
 {
   hot_data << stepsArray[i] << " " << HdiffArray1[i] << std::endl;
   cold_data << stepsArray[i] << " " << HdiffArray2[i] << std::endl;
