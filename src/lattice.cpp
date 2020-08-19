@@ -205,6 +205,14 @@ lattice& lattice::operator =(const lattice& L_in)
   {
     return *this;
   }
+  else if( this->nsites == L_in.nsites &&  this->nt == L_in.nt &&  this->nx == L_in.nx &&  this->ny == L_in.ny &&  this->nz == L_in.nz )
+  {
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = L_in.site[i];
+    }
+    return *this;
+  }
   else
   {
     nt = L_in.nt;
@@ -227,6 +235,7 @@ lattice& lattice::operator =(const lattice& L_in)
     return *this;
   }
 }
+
 void lattice::setLatticeSite(long unsigned int site_index, const matrix_complex& A)
 {
   site[site_index].higgs = A;
