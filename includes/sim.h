@@ -57,8 +57,7 @@ public:
   void printAcceptance() const;
   void printSite(long unsigned int site_index) const;
   void printDerivatives(long unsigned int site_index) const;
-
-private:
+//private:
   int steps;
   int nAccepts, nRejects;
   double stepSize;
@@ -67,8 +66,12 @@ private:
   const matrix_complex plaquette(const lattice& L_in,long unsigned index, int dir1, int dir2) const;
   lattice L, Lcopy;
   Plattice startMomentum, endMomentum;
+  lattice L_temp;
+  Plattice P_temp;
   std::mt19937_64 randomGenerator;
   simMatrixReturn boundary_condition;
 };
 
+matrix_complex myExp(const matrix_complex & A, int N);
+matrix_complex CayleyHamiltonExp(const matrix_complex & A);
 #endif
