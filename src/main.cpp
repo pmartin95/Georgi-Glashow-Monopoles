@@ -25,6 +25,9 @@ int main()
   int stepsArray[3];
   double HdiffArray1[3] = {0.0d}, HdiffArray2[3] = {0.0d};
 
+
+  std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L) - sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L).adjoint() << std::endl;
+  std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionPhiDerivative(10,sim1.L) - sim1.georgiGlashowActionPhiDerivative(10,sim1.L) << std::endl;
   sim1.setupSteps(10);
   sim2.setupSteps(10);
   for(int i = 0; i < 30;i++)
@@ -36,6 +39,7 @@ int main()
     time1.stopwatchStart();
     sim2.initializeHMC();
     std::cout << "Initialization step: " << i << " of 30. Sim2 time: " << time1.stopwatchReadSeconds() << std::endl << std::endl;
+
   }
 //
 //
@@ -69,6 +73,7 @@ hot_data.close();
 cold_data.close();
     std::cout << "Hamiltonian: " << sim1.Hamiltonian() << std::endl;
 
+  sim1.printAcceptance();
   sim1.printAcceptance();
 
   ////Measure observables (average plaquette)
