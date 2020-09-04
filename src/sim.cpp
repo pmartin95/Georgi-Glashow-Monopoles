@@ -19,12 +19,15 @@ simulation::simulation()
   m2 = DEFAULT_M2;
   lambda = DEFAULT_LAMBDA;
   g = DEFAULT_STARTING_G;
+
   L = lattice(randomGenerator);
   Lcopy = L;
   L_temp = Lcopy;
+
   startMomentum = Plattice(randomGenerator);
   endMomentum = startMomentum;
   P_temp = endMomentum;
+
   setupBoundaryConditions('p');
 }
 
@@ -38,10 +41,15 @@ simulation::simulation(const simulation& sim)
   m2 = sim.m2;
   lambda = sim.lambda;
   g = sim.g;
+
   L = sim.L;
-  Lcopy = L;
+  Lcopy = sim.Lcopy;
+  L_temp = sim.L_temp;
+
   startMomentum = sim.startMomentum;
   endMomentum = sim.endMomentum; //This might need to be changed later
+  P_temp = sim.P_temp;
+
   boundary_condition = sim.boundary_condition;
 }
 
@@ -75,8 +83,10 @@ simulation::simulation(double m2_in,double lambda_in,double g_in)
   g = g_in;
   L = lattice(randomGenerator);
   Lcopy = L;
+  L_temp = Lcopy;
   startMomentum = Plattice(randomGenerator);
   endMomentum = startMomentum;
+  P_temp = endMomentum;
   setupBoundaryConditions('p');
 }
 
@@ -93,8 +103,10 @@ simulation::simulation(const lattice& L_in)
   g = DEFAULT_STARTING_G;
   L = L_in;
   Lcopy = L;
+  L_temp = Lcopy;
   startMomentum = Plattice(randomGenerator);
   endMomentum = startMomentum;
+  P_temp = endMomentum;
   setupBoundaryConditions('p');
 }
 
@@ -111,8 +123,10 @@ simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice&
   g = g_in;
   L = L_in;
   Lcopy = L;
+  L_temp = Lcopy;
   startMomentum = Plattice(randomGenerator);
   endMomentum = startMomentum;
+  P_temp = endMomentum;
   setupBoundaryConditions('p');
 }
 simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in, char boundaryType)
@@ -128,8 +142,10 @@ simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice&
   g = g_in;
   L = L_in;
   Lcopy = L;
+  L_temp = Lcopy;
   startMomentum = Plattice(randomGenerator);
   endMomentum = startMomentum;
+  P_temp = endMomentum;
   setupBoundaryConditions(boundaryType);
 }
 
@@ -143,11 +159,11 @@ void simulation::initializeHMC()
 {
   for(int i = 0;i< steps;i++)
   {
-    leapfrogOneStep();
+  //  leapfrogOneStep();
   }
-  std::cout << "\\Delta H: " << georgiGlashowHamiltonian(Lcopy,endMomentum) - georgiGlashowHamiltonian(L,startMomentum) << std::endl;
+  std::cout << "\\Delta H: " << georgiGlashowHamiltonian(Lcopy,endMomentum) - georgiGlashowHamiltonian(Lcopy,endMomentum) << std::endl; //georgiGlashowHamiltonian(L,startMomentum) << std::endl;
   //resetMomenta();
-  L = Lcopy;
+  //L = Lcopy;
   startMomentum = endMomentum;
 }
 
@@ -183,18 +199,18 @@ void simulation::leapfrogOneStep()
     for(site_index=0; site_index < L.nsites;site_index++)
     {
       //Change the p sign to + instead of -, just to see what happens
-      FORALLDIR(dir)
-      P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
-      P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
+      // FORALLDIR(dir)
+      // P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
+      // P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
     }
     #pragma omp barrier
     // U -> U + \Delta t P
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
-      FORALLDIR(dir)
-      L_temp.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0d,-1.0d) * stepSize * P_temp.site[site_index].link[dir] )) * Lcopy.site[site_index].link[dir] ;
-      L_temp.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * P_temp.site[site_index].higgs;
+      // FORALLDIR(dir)
+      // L_temp.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0d,-1.0d) * stepSize * P_temp.site[site_index].link[dir] )) * Lcopy.site[site_index].link[dir] ;
+      // L_temp.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * P_temp.site[site_index].higgs;
     }
     #pragma omp barrier
 
@@ -202,9 +218,9 @@ void simulation::leapfrogOneStep()
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
-      FORALLDIR(dir)
-      endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
-      endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
+      // FORALLDIR(dir)
+      // endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
+      // endMomentum.site[sit e_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
     }
     #pragma omp barrier
     if(omp_get_thread_num() == 0)
@@ -403,16 +419,16 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
   momenta_matrix.setZero();
 
   field_total = georgiGlashowAction(L_in);
-   //std::cout << "Field total: " << field_total << std::endl;
-  #pragma omp parallel for private(i) default(shared)
+   std::cout << "Field total: " << field_total << std::endl;
+  //#pragma omp parallel for private(i) default(shared)
   for(site_index=0;site_index < L_in.nsites; site_index++)
   {
     FORALLDIR(i)
-      momenta_matrix += P_in.site[site_index].link[i] *  P_in.site[site_index].link[i]/2.0;
-    momenta_matrix +=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs/2.0;
+      momenta_matrix += P_in.site[site_index].link[i] *  P_in.site[site_index].link[i]/4.0;
+    momenta_matrix +=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs/4.0;
   }
   momenta_total = momenta_matrix.trace().real();
-//  std::cout << "Momenta total: " << momenta_total << std::endl;
+ //std::cout << "Momenta total: " << momenta_total << std::endl;
   return field_total + momenta_total;
 }
 
