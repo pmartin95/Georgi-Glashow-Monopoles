@@ -50,13 +50,13 @@ int main()
     stepsArray[j] = current_steps;
     sim1.setupSteps(current_steps);
     sim2.setupSteps(current_steps);
-    for(int i=0; i < 1;i++)
+    for(int i=0; i < 30;i++)
     {
       HdiffArray1[j] += std::abs(sim1.runLeapfrogSimulation());
       HdiffArray2[j] += std::abs(sim2.runLeapfrogSimulation());
     }
-    HdiffArray1[j] /= 1.0;
-    HdiffArray2[j] /= 1.0;
+    HdiffArray1[j] /= 30.00;
+    HdiffArray2[j] /= 30.00;
     current_steps *= 10;
   }
 

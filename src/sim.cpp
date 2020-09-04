@@ -182,8 +182,8 @@ void simulation::leapfrogOneStep()
     for(site_index=0; site_index < L.nsites;site_index++)
     {
       //Change the p sign to + instead of -, just to see what happens
-      // FORALLDIR(dir)
-      // P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
+      FORALLDIR(dir)
+      P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
       P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
     }
     #pragma omp barrier
@@ -191,8 +191,8 @@ void simulation::leapfrogOneStep()
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
-      // FORALLDIR(dir)
-      // L_temp.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0d,-1.0d) * stepSize * P_temp.site[site_index].link[dir] )) * Lcopy.site[site_index].link[dir] ;
+      FORALLDIR(dir)
+      L_temp.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0d,-1.0d) * stepSize * P_temp.site[site_index].link[dir] )) * Lcopy.site[site_index].link[dir] ;
       L_temp.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * P_temp.site[site_index].higgs;
     }
     #pragma omp barrier
@@ -204,8 +204,8 @@ void simulation::leapfrogOneStep()
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
-      // FORALLDIR(dir)
-      // endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
+      FORALLDIR(dir)
+      endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
       endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
     }
   }
