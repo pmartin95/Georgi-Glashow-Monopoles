@@ -178,6 +178,7 @@ void simulation::leapfrogOneStep()
 
   #pragma omp parallel private(dir) default(shared)
   {
+    // P -> P - \Delta t /2 * F
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
@@ -187,7 +188,7 @@ void simulation::leapfrogOneStep()
       P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
     }
     #pragma omp barrier
-
+    // U -> U + \Delta t P
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
@@ -197,10 +198,7 @@ void simulation::leapfrogOneStep()
     }
     #pragma omp barrier
 
-    if(omp_get_thread_num() == 0)
-      Lcopy = L_temp;
-    #pragma omp barrier
-
+    // P -> P - \Delta t /2 * F
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
@@ -208,6 +206,9 @@ void simulation::leapfrogOneStep()
       endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
       endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
     }
+    #pragma omp barrier
+    if(omp_get_thread_num() == 0)
+      Lcopy = L_temp;
   }
 }
 
