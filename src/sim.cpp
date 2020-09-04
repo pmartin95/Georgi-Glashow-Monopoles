@@ -408,8 +408,8 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
   for(site_index=0;site_index < L_in.nsites; site_index++)
   {
     FORALLDIR(i)
-      momenta_matrix += P_in.site[site_index].link[i] *  P_in.site[site_index].link[i];
-    momenta_matrix +=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs;
+      momenta_matrix += P_in.site[site_index].link[i] *  P_in.site[site_index].link[i]/2.0;
+    momenta_matrix +=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs/2.0;
   }
   momenta_total = momenta_matrix.trace().real();
 //  std::cout << "Momenta total: " << momenta_total << std::endl;
