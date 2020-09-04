@@ -484,6 +484,14 @@ Plattice& Plattice::operator =(const Plattice& P_in)
   {
     return *this;
   }
+  else if( this->nsites == P_in.nsites &&  this->nt == P_in.nt &&  this->nx == P_in.nx &&  this->ny == P_in.ny &&  this->nz == P_in.nz )
+  {
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = P_in.site[i];
+    }
+    return *this;
+  }
   else
   {
     nt = P_in.nt;
