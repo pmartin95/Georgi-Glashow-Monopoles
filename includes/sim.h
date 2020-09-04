@@ -39,7 +39,7 @@ public:
   double georgiGlashowHamiltonian(const lattice& L_in, const Plattice& P_in) const;
   double Hamiltonian() const;
   const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
-  const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int index, const lattice& L_in) const;
+  const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const;
   //Observables
   double averagePlaquettes() const; //
   const matrix_complex averagePhi() const;
@@ -62,8 +62,8 @@ public:
   int nAccepts, nRejects;
   double stepSize;
   double m2, lambda, g;
-  const matrix_complex plaquette(long unsigned index, int dir1, int dir2) const;
-  const matrix_complex plaquette(const lattice& L_in,long unsigned index, int dir1, int dir2) const;
+  const matrix_complex plaquette(long unsigned site_index, int dir1, int dir2) const;
+  const matrix_complex plaquette(const lattice& L_in,long unsigned site_index, int dir1, int dir2) const;
   lattice L, Lcopy;
   Plattice startMomentum, endMomentum;
   lattice L_temp;

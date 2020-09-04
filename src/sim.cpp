@@ -176,15 +176,14 @@ void simulation::leapfrogOneStep()
   long unsigned int site_index;
   int dir;
 
-
   #pragma omp parallel private(dir) default(shared)
   {
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
       //Change the p sign to + instead of -, just to see what happens
-      FORALLDIR(dir)
-      P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
+      // FORALLDIR(dir)
+      // P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy) ;
       P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
     }
     #pragma omp barrier
@@ -192,8 +191,8 @@ void simulation::leapfrogOneStep()
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
-      FORALLDIR(dir)
-      L_temp.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0d,-1.0d) * stepSize * P_temp.site[site_index].link[dir] )) * Lcopy.site[site_index].link[dir] ;
+      // FORALLDIR(dir)
+      // L_temp.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0d,-1.0d) * stepSize * P_temp.site[site_index].link[dir] )) * Lcopy.site[site_index].link[dir] ;
       L_temp.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * P_temp.site[site_index].higgs;
     }
     #pragma omp barrier
@@ -205,8 +204,8 @@ void simulation::leapfrogOneStep()
     #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
     {
-      FORALLDIR(dir)
-      endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
+      // FORALLDIR(dir)
+      // endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
       endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
     }
   }
@@ -236,7 +235,8 @@ bool simulation::metropolisDecision()
     return false;
   }
 }
-
+////NOTE FOR PAUL
+// I think the issue lies in the phiDerivativePart
 //Action functions
 double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) const
 {
@@ -254,12 +254,12 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) 
 
   //Phi "derivative"
   phiDerivativePart = 4.0d * phiSquareTrace;
-  FORALLDIR(dir)
-  {
-    int jumpTemp[4] = {0};
-    jumpTemp[dir]++;
-    phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
-  }
+  // FORALLDIR(dir)
+  // {
+  //   int jumpTemp[4] = {0};
+  //   jumpTemp[dir]++;
+  //   phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
+  // }
   phiDerivativePart *= 2.0d;
   //plaquette
   FORALLDIRLESSTHAN(i,j)
@@ -271,7 +271,7 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) 
   plaquettePart *= 2.0d/(g*g);
   //other phi terms
   miscPhiPart = m2 * phiSquareTrace + lambda * phiSquareTrace *phiSquareTrace;
-
+  phiDerivativePart = 0.0d; ////
   return phiDerivativePart + plaquettePart + miscPhiPart;
 }
 // double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) const
@@ -351,12 +351,12 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
 
   //Phi "derivative"
   phiDerivativePart = 4.0d * phiSquareTrace;
-  FORALLDIR(dir)
-  {
-    int jumpTemp[4] = {0};
-    jumpTemp[dir]++;
-    phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L_in,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
-  }
+  // FORALLDIR(dir)
+  // {
+  //   int jumpTemp[4] = {0};
+  //   jumpTemp[dir]++;
+  //   phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L_in,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
+  // }
   phiDerivativePart *= 2.0d;
   //plaquette
   FORALLDIRLESSTHAN(i,j)
@@ -368,6 +368,7 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
   plaquettePart *= 2.0d/(g*g);
   //other phi terms
   miscPhiPart = m2 * phiSquareTrace + lambda * phiSquareTrace *phiSquareTrace;
+  phiDerivativePart = 0.0d; /////
 
   return phiDerivativePart + plaquettePart + miscPhiPart;
 }
@@ -516,18 +517,18 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
     temp3.setZero();
     Iden.setIdentity();
 
-    FORALLDIR(temp_dir)
-    {
-      int jump1[4] = {0}, jump2[4] ={0};
-      jump1[temp_dir]++;jump2[temp_dir]--;
-      temp2.noalias() += matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
-      temp3.noalias() += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
-    }
+    // FORALLDIR(temp_dir)
+    // {
+    //   int jump1[4] = {0}, jump2[4] ={0};
+    //   jump1[temp_dir]++;jump2[temp_dir]--;
+    //   temp2.noalias() += matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
+    //   temp3.noalias() += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
+    // }
     temp1 = matCall(L_in,4,site_index,jumpNone);
     temp1.noalias() = (8.0 * lambda *temp1*(temp1*temp1).trace() + (4.0*m2*+ 32.0)*temp1  );
 
     //std::cout << "Link force, temp1: " << temp1 << std::endl;
-    temp = 4.0*(temp2 + temp3) -temp1 ;
+    temp = 4.0*(temp2 + temp3) - temp1 ;
     temp = temp - temp.trace() / 2.0d * Iden;
     return temp;
 }

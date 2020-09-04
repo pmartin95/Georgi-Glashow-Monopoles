@@ -27,7 +27,7 @@ int main()
 
 
   std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L) - sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L).adjoint() << std::endl;
-  std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionPhiDerivative(10,sim1.L) - sim1.georgiGlashowActionPhiDerivative(10,sim1.L) << std::endl;
+  std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionPhiDerivative(10,sim1.L) - sim1.georgiGlashowActionPhiDerivative(10,sim1.L).adjoint() << std::endl;
   sim1.setupSteps(10);
   sim2.setupSteps(10);
   for(int i = 0; i < 30;i++)
