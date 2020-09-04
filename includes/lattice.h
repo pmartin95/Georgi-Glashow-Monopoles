@@ -4,7 +4,7 @@
 #define __LATTICE__
 #include<Eigen/Dense>
 #include<random>
-#define DEFAULT_LATTICE_SIZE 16
+#define DEFAULT_LATTICE_SIZE 8
 #define FORALLDIR(i) for(i = 0; i<4;i++)
 #define FORALLDIRBUT(i,dir) for(i=0;i<4;i++) if(i != dir)
 #define FORALLDIRLESSTHAN(i,j) for( j = 0; j<4;j++) for(i=0;i<j;i++)
