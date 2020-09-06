@@ -64,10 +64,8 @@ public:
   double m2, lambda, g;
   const matrix_complex plaquette(long unsigned site_index, int dir1, int dir2) const;
   const matrix_complex plaquette(const lattice& L_in,long unsigned site_index, int dir1, int dir2) const;
-  lattice L, Lcopy;
-  Plattice startMomentum, endMomentum;
-  lattice L_temp;
-  Plattice P_temp;
+  lattice L, Lcopy,L_temp;
+  Plattice startMomentum, endMomentum,P_temp;
   std::mt19937_64 randomGenerator;
   simMatrixReturn boundary_condition;
 };
