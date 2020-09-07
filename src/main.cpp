@@ -34,7 +34,7 @@ int main()
   {
     //mytime time1;
     //time1.stopwatchStart();
-    sim1.initializeHMC();
+    //sim1.initializeHMC();
     //std::cout << "Initialization step: " << i << " of 30. Sim1 time: " << time1.stopwatchReadSeconds() << std::endl << std::endl;
     //time1.stopwatchStart();
     sim2.initializeHMC();
