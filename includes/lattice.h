@@ -2,9 +2,11 @@
 
 #ifndef _LATTICE_
 #define __LATTICE__
+
 #include<Eigen/Dense>
 #include<random>
-#define DEFAULT_LATTICE_SIZE 8
+#include<vector>
+#define DEFAULT_LATTICE_SIZE 4
 #define FORALLDIR(i) for(i = 0; i<4;i++)
 #define FORALLDIRBUT(i,dir) for(i=0;i<4;i++) if(i != dir)
 #define FORALLDIRLESSTHAN(i,j) for( j = 0; j<4;j++) for(i=0;i<j;i++)
@@ -74,7 +76,8 @@ private:
   int nt,nx,ny,nz;
   int ns[4];
   long int nsites;
-  lattice_site * site;
+  std::vector<lattice_site> site;
+  //lattice_site * site;
 };
 
 class Plattice{
@@ -101,7 +104,8 @@ private:
   int nt,nx,ny,nz;
   int ns[4];
   long int nsites;
-  Plattice_site * site;
+  std::vector<Plattice_site> site;
+  //Plattice_site * site;
 };
 
 
