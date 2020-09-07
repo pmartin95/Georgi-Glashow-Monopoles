@@ -258,12 +258,12 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) 
 
   //Phi "derivative"
   phiDerivativePart = 4.0 * phiSquareTrace;
-  // FORALLDIR(dir)
-  // {
-  //   int jumpTemp[4] = {0};
-  //   jumpTemp[dir]++;
-  //   phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
-  // }
+  FORALLDIR(dir)
+  {
+    int jumpTemp[4] = {0};
+    jumpTemp[dir]++;
+    phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
+  }
   phiDerivativePart *= 2.0;
   //plaquette
   FORALLDIRLESSTHAN(i,j)
@@ -278,65 +278,6 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) 
   phiDerivativePart = 0.0; ////
   return phiDerivativePart + plaquettePart + miscPhiPart;
 }
-// double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) const
-// {
-//   double total = 0.0, subtotal = 0.0;
-//   int i,j;
-//   int jumpNone[4] = {0,0,0,0};
-//   long unsigned int temp_index;
-//   matrix_complex phi  = matCall(L,4,site_index,jumpNone);
-//   matrix_complex phi_temp;
-//   matrix_complex link1,link2, link3, link4;
-//
-//   total += 8.0 * (phi * phi).trace().real();
-//   FORALLDIR(i)
-//   {
-//     int jump1[4] = {0};
-//     jump1[i]+=1;
-//     phi_temp = matCall(L,4, site_index, jump1);
-//     link1 = matCall(L,i,site_index,jumpNone);
-//     total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
-//   }
-//   FORALLDIRLESSTHAN(i,j)
-//   {
-//     subtotal += 2.0 - (plaquette(site_index, i,j) ).trace().real();
-//   }
-//   total += subtotal * 2.0 /(g*g);
-//   total += m2 *(phi * phi).trace().real();
-//   subtotal = (phi * phi).trace().real();
-//   total += lambda * subtotal * subtotal;
-//   return total;
-// }
-
-// double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, const lattice& L_in) const
-// {
-//   double total = 0.0, subtotal = 0.0;
-//   int i,j;
-//   int jumpNone[4] = {0,0,0,0};
-//   long unsigned int temp_index;
-//   matrix_complex phi  = matCall(L_in,4,site_index,jumpNone);
-//   matrix_complex phi_temp;
-//   matrix_complex link1,link2, link3, link4;
-//
-//   total += 8.0 * (phi * phi).trace().real();
-//   FORALLDIR(i)
-//   {
-//     int jump1[4] = {0};
-//     jump1[i]+=1;
-//     phi_temp = matCall(L_in,4, site_index, jump1);
-//     link1 = matCall(L_in,i,site_index,jumpNone);
-//     total -= 2.0 * (phi * link1 * phi_temp * link1.adjoint() ).trace().real();
-//   }
-//   FORALLDIRLESSTHAN(i,j)
-//   {
-//     subtotal += 2.0 - (plaquette(L_in,site_index, i,j) ).trace().real(); //!!!
-//   }
-//   total += subtotal * 2.0 /(g*g);
-//   total += m2 *(phi * phi).trace().real();
-//   subtotal = (phi * phi).trace().real();
-//   total += lambda * subtotal * subtotal;
-//   return total;
-// }
 
 
 double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, const lattice& L_in) const
@@ -355,12 +296,12 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
 
   //Phi "derivative"
   phiDerivativePart = 4.0 * phiSquareTrace;
-  // FORALLDIR(dir)
-  // {
-  //   int jumpTemp[4] = {0};
-  //   jumpTemp[dir]++;
-  //   phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L_in,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
-  // }
+  FORALLDIR(dir)
+  {
+    int jumpTemp[4] = {0};
+    jumpTemp[dir]++;
+    phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L_in,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
+  }
   phiDerivativePart *= 2.0;
   //plaquette
   FORALLDIRLESSTHAN(i,j)
@@ -377,46 +318,68 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
   return phiDerivativePart + plaquettePart + miscPhiPart;
 }
 
-
 double simulation::georgiGlashowAction() const
 {
-  double total = 0.0;
-  #pragma omp parallel for default(shared)
-  for(long unsigned int i = 0; i<L.nsites;i++)
-    total += georgiGlashowLagrangianDensity(i);
-  return total;
+  return georgiGlashowAction(L);
 }
+
 double simulation::georgiGlashowAction(const lattice& L_in) const
 {
   double total = 0.0;
-  #pragma omp parallel for default(shared)
-  for(long unsigned int i = 0; i<L_in.nsites;i++)
-    total += georgiGlashowLagrangianDensity(i,L_in);
+  #pragma omp parallel default(shared)
+  {
+    double local_total = 0.0;
+    #pragma omp for
+    for(long unsigned int i = 0; i<L_in.nsites;i++)
+    {
+      local_total += georgiGlashowLagrangianDensity(i,L_in);
+    }
+    #pragma omp critical
+    total+=local_total;
+  }
   return total;
 }
+
+
+double simulation::kineticTerm(const Plattice& P_in) const
+{
+  double momenta_total = 0.0;
+  matrix_complex momenta_matrix;
+  long unsigned site_index;
+  momenta_matrix.setZero();
+  #pragma omp parallel default(shared)
+  {
+    matrix_complex local_momenta;
+    local_momenta.setZero();
+    int i;
+    #pragma omp for
+    for(site_index=0;site_index < P_in.nsites; site_index++)
+    {
+      FORALLDIR(i)
+        local_momenta+= P_in.site[site_index].link[i] *  P_in.site[site_index].link[i];
+      local_momenta+=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs;
+    }
+    #pragma omp critical
+    momenta_matrix += local_momenta;
+  }
+  momenta_total = momenta_matrix.trace().real();
+  return momenta_total/4.0;
+}
+
 
 double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice& P_in) const
 {
   matrix_complex momenta_matrix;
-  double field_total, momenta_total;
+  double field_total, kinetic_total;
   long unsigned int site_index;
   int i;
 
-  momenta_total = 0.0;
-  momenta_matrix.setZero();
-
   field_total = georgiGlashowAction(L_in);
-   //std::cout << "Field total: " << field_total << std::endl;
-  #pragma omp parallel for private(i) default(shared)
-  for(site_index=0;site_index < L_in.nsites; site_index++)
-  {
-    FORALLDIR(i)
-      momenta_matrix += P_in.site[site_index].link[i] *  P_in.site[site_index].link[i];
-    momenta_matrix +=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs;
-  }
-  momenta_total = momenta_matrix.trace().real();
-//  std::cout << "Momenta total: " << momenta_total << std::endl;
-  return field_total + momenta_total;
+    std::cout << "Field total: " << field_total << std::endl;
+
+  kinetic_total = kineticTerm(P_in);
+    std::cout << "Momenta total: " << kinetic_total << std::endl;
+  return field_total + kinetic_total;
 }
 
 double simulation::Hamiltonian() const
@@ -467,52 +430,6 @@ const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned
   return subtotal1 + subtotal2 ;// best so far
 }
 
-// const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const //
-// {
-//   matrix_complex temp1,temp2,temp3,temp4,Iden;
-//   matrix_complex subtotal1,subtotal2;
-//   int jump1[4] = {0};
-//   int jumpNone[4] = {0,0,0,0};
-//   int temp_dir;
-//
-//   //complex<double> traced_part;
-//   temp1.setZero(); temp2.setZero() ; temp3.setZero(); temp4.setZero();
-//   Iden.setIdentity();
-//   jump1[dir]++;
-//   FORALLDIRBUT(temp_dir,dir)
-//   {
-//       int jump2[4] = {0}, jump3[4] = {0}, jump4[4] = {0};
-//       jump2[temp_dir]++;
-//       jump3[temp_dir]--;
-//       jump4[dir]++;
-//       jump4[temp_dir]--;
-//       temp1 += matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump1) * matCall(L_in,dir,site_index,jump2).adjoint() * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
-//       //std::cout << "Temp1:\n" << temp1 << std::endl;
-//       temp2 += matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,dir,site_index,jump2) * matCall(L_in,temp_dir,site_index,jump1).adjoint() * matCall(L_in,dir,site_index,jumpNone).adjoint();
-//       //std::cout << "Temp2:\n" << temp2 << std::endl;
-//       temp3 += matCall(L_in,temp_dir,site_index,jump3).adjoint() * matCall(L_in,dir,site_index,jump3) * matCall(L_in,temp_dir,site_index,jump4) * matCall(L_in,dir,site_index,jumpNone).adjoint();
-//       //std::cout << "Temp3:\n" << temp3 << std::endl;
-//       temp4 += matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,temp_dir,site_index,jump4).adjoint() * matCall(L_in,dir,site_index,jump3).adjoint() * matCall(L_in,temp_dir,site_index,jump3);
-//       //std::cout << "Temp4:\n" << temp4 << std::endl;
-//   }
-//
-//   //traced_part = (temp1 - temp2 - temp3 + temp4).trace();
-//   subtotal1 = 2.0d*(temp1 - temp2 - temp3 + temp4);
-//   //- traced_part * Iden;
-//   //std::cout << "traced part: " << traced_part << std::endl;
-//   //std::cout << "Subtotal 1:\n" << subtotal1 << std::endl;
-//
-//   temp1 = matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint() * matCall(L_in,4,site_index,jumpNone);
-//   //std::cout << "Temp1:\n" << temp1 << std::endl;
-//   temp2 = matCall(L_in,4,site_index,jumpNone) * matCall(L_in,dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint();
-//   //std::cout << "Temp2:\n" << temp2 << std::endl;
-//   subtotal2 = temp1 - temp2;
-//   //std::cout << "Subtotal 2:\n" << subtotal2 << std::endl;
-//   return subtotal1 * complex<double>(0.0,-1.0/(g*g)) + subtotal2 * complex<double>(0.0,1.0);
-// }
-
-// Let's try out the alternative Phi derivative and see how it works. Otherwise we might have to play with link derivative term
-
 const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const
 {
     matrix_complex temp1, temp2, temp3,Iden,temp;
@@ -539,35 +456,6 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
     return temp;
 }
 
-// const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const
-// {
-//     matrix_complex temp1, temp2, temp3,Iden;
-//     int temp_dir;
-//     int jumpNone[4] = {0,0,0,0};
-//     double traced_part;
-//     temp1.setZero();
-//     temp2.setZero();
-//     temp3.setZero();
-//     Iden.setIdentity();
-//
-//     FORALLDIR(temp_dir)
-//     {
-//       int jump1[4] = {0}, jump2[4] ={0};
-//       jump1[temp_dir]++;
-//       jump2[temp_dir]--;
-//       temp2 += matCall(L_in,temp_dir,site_index,jumpNone) *  matCall(L_in,4,site_index,jump1) * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
-//       temp3 += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
-//     }
-//     temp1 += matCall(L_in,4,site_index,jumpNone);
-//     // if(site_index == 10)
-//     // {
-//     //   std::cout << "Site " << site_index << " force terms:\n";
-//     //   std::cout << "temp1: " << temp1 << "\n\ntemp2:" << temp2 ;
-//     //   std::cout << "\n\ntemp3: " << temp3 << std::endl << std::endl;
-//     // }
-//     temp1 = (4.0 * lambda *temp1.transpose()*(temp1*temp1).trace() + (2.0*m2*+ 16.0)*temp1.transpose()  );
-//     return temp1 - 2*(temp2 + temp3).transpose();
-// }
 
 
 //Observables
@@ -576,38 +464,59 @@ double simulation::averagePlaquettes() const
   int dir1,dir2;
   double subtotal = 0.0;
   unsigned long int site_index;
-  #pragma omp parallel for private(dir1,dir2) default(shared)
-  for(long unsigned int i = 0; i< L.nsites;i++)
+  #pragma omp parallel private(dir1,dir2) default(shared)
   {
-    FORALLDIRLESSTHAN(dir1,dir2)
-      subtotal += plaquette(site_index,dir1,dir2).trace().real();
+    double local_subtotal = 0.0;
+    #pragma omp for
+    for(long unsigned int i = 0; i< L.nsites;i++)
+    {
+      FORALLDIRLESSTHAN(dir1,dir2)
+        local_subtotal+= plaquette(site_index,dir1,dir2).trace().real();
+    }
+    #pragma omp critical
+    subtotal+=local_subtotal;
   }
-
   return subtotal / static_cast<double>(L.nsites);
 }
 
 const matrix_complex simulation::averagePhi() const
 {
-  long unsigned int i;
   matrix_complex subtotal;
   subtotal.setZero();
-  #pragma omp parallel for default(shared)
-  for(i = 0; i< L.nsites; i++)
-    subtotal += L.site[i].higgs;
-  subtotal = subtotal / static_cast<double>(L.nsites);
-  return subtotal;
+  unsigned long int site_index;
+  #pragma omp parallel default(shared)
+  {
+    matrix_complex local_subtotal;
+    subtotal.setZero();
+    #pragma omp for
+    for(long unsigned int i = 0; i< L.nsites;i++)
+    {
+        local_subtotal+= L.site[i].higgs;
+    }
+    #pragma omp critical
+    subtotal+=local_subtotal;
+  }
+  return subtotal / static_cast<double>(L.nsites);
 }
 
 const matrix_complex simulation::averagePhi2() const
 {
-  long unsigned int i;
   matrix_complex subtotal;
   subtotal.setZero();
-  #pragma omp parallel for default(shared)
-  for(i = 0; i< L.nsites; i++)
-    subtotal += L.site[i].higgs * L.site[i].higgs  ;
-  subtotal = subtotal / static_cast<double>(L.nsites);
-  return subtotal;
+  unsigned long int site_index;
+  #pragma omp parallel default(shared)
+  {
+    matrix_complex local_subtotal;
+    subtotal.setZero();
+    #pragma omp for
+    for(long unsigned int i = 0; i< L.nsites;i++)
+    {
+        local_subtotal+= L.site[i].higgs * L.site[i].higgs;
+    }
+    #pragma omp critical
+    subtotal+=local_subtotal;
+  }
+  return subtotal / static_cast<double>(L.nsites);
 }
 
 //Setup functions
@@ -751,23 +660,6 @@ const matrix_complex simulation::plaquette(const lattice& L_in,long unsigned sit
   return u1*u2*u3*u4;
 }
 
-
-matrix_complex myExp(const matrix_complex & A, int N)
-{
-  matrix_complex temp, subtotal;
-  int factorial;
-  int i;
-  temp.setIdentity();
-  subtotal.setIdentity();
-  factorial = 1.0;
-  for(i = 0;i < N;i++)
-  {
-    temp *=A;
-    factorial *= i+1;
-    subtotal += temp / static_cast<double>(factorial);
-  }
-  return subtotal;
-}
 
 matrix_complex CayleyHamiltonExp(const matrix_complex & A)
 {
