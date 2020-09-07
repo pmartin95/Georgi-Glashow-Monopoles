@@ -1,7 +1,6 @@
 #include <iostream>
 #include <complex>
 #include <cstdlib>
-#include<vector>
 #include<Eigen/Dense>
 #include "lattice.h"
 #include "rand.h"
@@ -79,9 +78,6 @@ lattice_site& lattice_site::operator =(const lattice_site& site1)
   }
 }
 
-
-
-
 lattice::lattice()
 {
   nt = DEFAULT_LATTICE_SIZE;
@@ -93,7 +89,11 @@ lattice::lattice()
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-  site= vector<lattice_site>(nsites, lattice_site());
+  site = new lattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
+    site[i] = lattice_site();
+  }
 }
 
 lattice::lattice(int Nt, int Nx, int Ny, int Nz)
@@ -102,12 +102,19 @@ lattice::lattice(int Nt, int Nx, int Ny, int Nz)
   nx = Nx;
   ny = Ny;
   nz = Nz;
+
   ns[0] = nt;
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
+
   nsites = nt * nx * ny * nz;
-  site = vector<lattice_site>(nsites,lattice_site());
+
+  site = new lattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
+    site[i] = lattice_site();
+  }
 }
 
 lattice::lattice(const lattice& lattice1)
@@ -121,7 +128,11 @@ lattice::lattice(const lattice& lattice1)
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-  site = lattice1.site;
+  site = new lattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
+    site[i] = lattice1.site[i];
+  }
 }
 
 lattice::lattice(const lattice_site& site1)
@@ -135,7 +146,11 @@ lattice::lattice(const lattice_site& site1)
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-  site = vector<lattice_site>(nsites,site1);
+  site = new lattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
+    site[i] = site1;
+  }
 }
 
 lattice::lattice(std::mt19937_64& g)
@@ -149,11 +164,11 @@ lattice::lattice(std::mt19937_64& g)
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-
-  site.reserve(nsites);
-  for(long unsigned int i = 0; i < site.size();i++)
+  site = new lattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
     site[i] = lattice_site(g);
-
+  }
 }
 
 
@@ -171,15 +186,17 @@ lattice::lattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g)
 
   nsites = nt * nx * ny * nz;
 
-  site.reserve(nsites);
-  for(long unsigned int i = 0; i < site.size();i++)
+  site = new lattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
     site[i] = lattice_site(g);
+  }
 }
 
 
 lattice::~lattice()
 {
-
+  delete [] site;
 }
 
 lattice& lattice::operator =(const lattice& L_in)
@@ -188,12 +205,33 @@ lattice& lattice::operator =(const lattice& L_in)
   {
     return *this;
   }
+  else if( this->nsites == L_in.nsites &&  this->nt == L_in.nt &&  this->nx == L_in.nx &&  this->ny == L_in.ny &&  this->nz == L_in.nz )
+  {
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = L_in.site[i];
+    }
+    return *this;
+  }
   else
   {
-    nt = L_in.nt; nx = L_in.nx; ny = L_in.ny; nz = L_in.nz;
-    ns[0] = nt; ns[1] = nx; ns[2] = ny; ns[3] = nz;
+    nt = L_in.nt;
+    nx = L_in.nx;
+    ny = L_in.ny;
+    nz = L_in.nz;
+
+    ns[0] = nt;
+    ns[1] = nx;
+    ns[2] = ny;
+    ns[3] = nz;
+
     nsites = nt * nx * ny * nz;
-    site = L_in.site;
+    delete [] site;
+    site = new lattice_site[nsites];
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = L_in.site[i];
+    }
     return *this;
   }
 }
@@ -202,12 +240,10 @@ void lattice::setLatticeSite(long unsigned int site_index, const matrix_complex&
 {
   site[site_index].higgs = A;
 }
-
 void lattice::setLatticeSite(long unsigned int site_index,int dir, const matrix_complex& A)
 {
   site[site_index].link[dir] = A;
 }
-
 void lattice::infoPrint() const
 {
   std::cout << "This is a " << nt << "x" << nx << "x" << ny << "x" << nz << " lattice.\n";
@@ -354,8 +390,11 @@ Plattice::Plattice()
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-  site = vector<Plattice_site>(nsites,Plattice_site());
-
+  site = new Plattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
+    site[i] = Plattice_site();
+  }
 }
 
 Plattice::Plattice(const Plattice& Plattice1)
@@ -369,8 +408,11 @@ Plattice::Plattice(const Plattice& Plattice1)
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-  site = Plattice1.site;
-
+  site = new Plattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
+  {
+    site[i] = Plattice1.site[i];
+  }
 }
 
 Plattice::Plattice(std::mt19937_64& g)
@@ -384,8 +426,8 @@ Plattice::Plattice(std::mt19937_64& g)
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-  site.reserve(nsites);
-  for(long unsigned int i = 0; i < site.size();i++)
+  site = new Plattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
   {
     site[i] = Plattice_site(g);
   }
@@ -402,8 +444,8 @@ Plattice::Plattice(std::mt19937_64& g, const lattice& L_in)
   ns[1] = nx;
   ns[2] = ny;
   ns[3] = nz;
-  site.reserve(nsites);
-  for(long unsigned int i = 0; i < site.size();i++)
+  site = new Plattice_site[nsites];
+  for(long unsigned int i = 0; i < nsites;i++)
   {
     site[i] = Plattice_site(g);
   }
@@ -423,7 +465,7 @@ Plattice::Plattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g)
 
   nsites = nt * nx * ny * nz;
 
-  site.reserve(nsites);
+  site = new Plattice_site[nsites];
   for(long unsigned int i = 0; i < nsites;i++)
   {
     site[i] = Plattice_site(g);
@@ -433,7 +475,7 @@ Plattice::Plattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g)
 
 Plattice::~Plattice()
 {
-
+  delete [] site;
 }
 
 Plattice& Plattice::operator =(const Plattice& P_in)
@@ -442,13 +484,33 @@ Plattice& Plattice::operator =(const Plattice& P_in)
   {
     return *this;
   }
+  else if( this->nsites == P_in.nsites &&  this->nt == P_in.nt &&  this->nx == P_in.nx &&  this->ny == P_in.ny &&  this->nz == P_in.nz )
+  {
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = P_in.site[i];
+    }
+    return *this;
+  }
   else
   {
-    nt = P_in.nt; nx = P_in.nx; ny = P_in.ny; nz = P_in.nz;
-    ns[0] = nt; ns[1] = nx; ns[2] = ny; ns[3] = nz;
-    nsites = nt * nx * ny * nz;
+    nt = P_in.nt;
+    nx = P_in.nx;
+    ny = P_in.ny;
+    nz = P_in.nz;
 
-    site = P_in.site;
+    ns[0] = nt;
+    ns[1] = nx;
+    ns[2] = ny;
+    ns[3] = nz;
+
+    nsites = nt * nx * ny * nz;
+    delete [] site;
+    site = new Plattice_site[nsites];
+    for(long unsigned int i = 0; i < nsites;i++)
+    {
+      site[i] = P_in.site[i];
+    }
     return *this;
   }
 }
