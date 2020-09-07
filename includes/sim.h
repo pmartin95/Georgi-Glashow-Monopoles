@@ -36,6 +36,7 @@ public:
   double georgiGlashowLagrangianDensity(long unsigned int, const lattice& L_in) const;
   double georgiGlashowAction() const;
   double georgiGlashowAction(const lattice& L_in) const;
+  double kineticTerm(const Plattice& P_in) const
   double georgiGlashowHamiltonian(const lattice& L_in, const Plattice& P_in) const;
   double Hamiltonian() const;
   const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
@@ -70,6 +71,5 @@ public:
   simMatrixReturn boundary_condition;
 };
 
-matrix_complex myExp(const matrix_complex & A, int N);
 matrix_complex CayleyHamiltonExp(const matrix_complex & A);
 #endif
