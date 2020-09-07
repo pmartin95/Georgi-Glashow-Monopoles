@@ -76,8 +76,8 @@ private:
   int nt,nx,ny,nz;
   int ns[4];
   long int nsites;
-  std::vector<lattice_site> site;
-  //lattice_site * site;
+  //std::vector<lattice_site> site;
+  lattice_site * site;
 };
 
 class Plattice{
@@ -104,8 +104,8 @@ private:
   int nt,nx,ny,nz;
   int ns[4];
   long int nsites;
-  std::vector<Plattice_site> site;
-  //Plattice_site * site;
+  //std::vector<Plattice_site> site;
+  Plattice_site * site;
 };
 
 
