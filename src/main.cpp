@@ -4,6 +4,7 @@
 #include<fstream>
 #include<complex>
 #include<cstdlib>
+#include <omp.h>
 #include "lattice.h"
 #include "rand.h"
 #include "sim.h"
@@ -29,8 +30,9 @@ int main()
   // std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L) - sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L).adjoint() << std::endl;
   // std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionPhiDerivative(10,sim1.L) - sim1.georgiGlashowActionPhiDerivative(10,sim1.L).adjoint() << std::endl;
   sim1.setupSteps(10);
-  sim2.setupSteps(10);
-  for(int i = 0; i < 10;i++)
+  sim2.setupSteps(1000);
+  std::cout << "Num threads: " << omp_get_num_threads() << std::endl;
+  for(int i = 0; i < 30;i++)
   {
     //mytime time1;
     //time1.stopwatchStart();
@@ -38,6 +40,9 @@ int main()
     //std::cout << "Initialization step: " << i << " of 30. Sim1 time: " << time1.stopwatchReadSeconds() << std::endl << std::endl;
     //time1.stopwatchStart();
     sim2.initializeHMC();
+      std::cout << "<Phi> = " << sim1.averagePhi() << std::endl;
+      std::cout << "<Phi^2> = " << sim1.averagePhi2() << std::endl;
+      std::cout << "Average plaquette = " << sim1.averagePlaquettes() << std::endl;
     //std::cout << "Initialization step: " << i << " of 30. Sim2 time: " << time1.stopwatchReadSeconds() << std::endl << std::endl;
   }
 //
