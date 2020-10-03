@@ -31,8 +31,8 @@ int main()
   // std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionPhiDerivative(10,sim1.L) - sim1.georgiGlashowActionPhiDerivative(10,sim1.L).adjoint() << std::endl;
   sim1.setupSteps(10);
   sim2.setupSteps(1000);
-  std::cout << "Num threads: " << omp_get_num_threads() << std::endl;
-  for(int i = 0; i < 30;i++)
+
+  for(int i = 0; i < 5;i++)
   {
     //mytime time1;
     //time1.stopwatchStart();
