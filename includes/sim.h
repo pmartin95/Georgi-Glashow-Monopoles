@@ -27,6 +27,8 @@ public:
   simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in, char boundaryType);
   ~simulation();
   //HMC routines
+  void updateFields(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, lattice& L_out );
+  void updateMomenta(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, Plattice& P_out );
   void initializeHMC();
   double runLeapfrogSimulation();
   void leapfrogOneStep();

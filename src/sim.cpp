@@ -140,6 +140,23 @@ simulation::~simulation()
 }
 
 //HMC routines
+
+void simulation::updateFields(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, lattice& L_out )
+{
+  int dir;
+  FORALLDIR(dir)
+    L_out.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0,1.0) * time_step * P_in.site[site_index].link[dir] )) * L_in.site[site_index].link[dir] ;
+  L_out.site[site_index].higgs = L_in.site[site_index].higgs + time_step * P_in.site[site_index].higgs;
+}
+
+void simulation::updateMomenta(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, Plattice& P_out )
+{
+  int dir;
+  FORALLDIR(dir)
+    P_out.site[site_index].link[dir] = P_in.site[site_index].link[dir] - time_step/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_in)  ;
+  P_out.site[site_index].higgs = P_in.site[site_index].higgs - time_step/2.0 * georgiGlashowActionPhiDerivative(site_index, L_in);
+}
+
 void simulation::initializeHMC()
 {
  for(int i = 0;i< steps;i++)
@@ -154,7 +171,7 @@ void simulation::initializeHMC()
 
 double simulation::runLeapfrogSimulation()
 {
-  for(int i = 0;i<steps;i++)
+
     leapfrogOneStep();
 
   double Hdiff = georgiGlashowHamiltonian(L, startMomentum) - georgiGlashowHamiltonian(Lcopy, endMomentum);
@@ -175,46 +192,70 @@ double simulation::runLeapfrogSimulation()
 void simulation::leapfrogOneStep()
 {
   long unsigned int site_index;
-  int dir;
 
-
-   #pragma omp parallel private(dir) default(none)
+  #pragma omp parallel default(none)
   {
-     #pragma omp for
+
+    #pragma omp for
     for(site_index=0; site_index < L.nsites;site_index++)
+    {updateMomenta(site_index,stepSize/2.0, endMomentum,Lcopy, P_temp);}
+    #pragma omp barrier
+
+    for(int i = 0;i<steps-1;i++)
     {
-    //  Change the p sign to + instead of -, just to see what happens
-      // FORALLDIR(dir)
-      // {
-      //   P_temp.site[site_index].link[dir] = endMomentum.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, Lcopy)  ;
-      // }
-       P_temp.site[site_index].higgs = endMomentum.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, Lcopy);
-    }
-     #pragma omp barrier
+      if(i%2 == 0)
+      {
+        #pragma omp for
+        for(site_index=0; site_index < L.nsites;site_index++)
+        {updateFields(site_index,stepSize,P_temp,Lcopy, L_temp );}
+        #pragma omp barrier
 
-     #pragma omp for
-    for(site_index=0; site_index < L.nsites;site_index++)
-    {
-    //  FORALLDIR(dir)
-      //  L_temp.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0,1.0) * stepSize * P_temp.site[site_index].link[dir] )) * Lcopy.site[site_index].link[dir] ;
-      L_temp.site[site_index].higgs = Lcopy.site[site_index].higgs + stepSize * P_temp.site[site_index].higgs;
-    }
-     #pragma omp barrier
-
-     if(omp_get_thread_num() == 0)
-     {
-      Lcopy = L_temp;
-
+        #pragma omp for
+        for(site_index=0; site_index < L.nsites;site_index++)
+        {updateMomenta(site_index,stepSize, P_temp,Lcopy,endMomentum);}
+        #pragma omp barrier
+        if(omp_get_thread_num() == 0 && i == steps-2)
+        {
+          endMomentum = P_temp;
+          Lcopy = L_temp;
+        }
+        #pragma omp barrier
       }
-     #pragma omp barrier
+      else
+      {
+        #pragma omp for
+        for(site_index=0; site_index < L.nsites;site_index++)
+        {updateFields(site_index,stepSize,endMomentum,L_temp, Lcopy );}
+        #pragma omp barrier
 
-     #pragma omp for
-    for(site_index=0; site_index < L.nsites;site_index++)
-    {
-    //  FORALLDIR(dir)
-        //endMomentum.site[site_index].link[dir] = P_temp.site[site_index].link[dir] - stepSize/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_temp);
-      endMomentum.site[site_index].higgs = P_temp.site[site_index].higgs - stepSize/2.0 * georgiGlashowActionPhiDerivative(site_index, L_temp);
+        #pragma omp for
+        for(site_index=0; site_index < L.nsites;site_index++)
+        {updateMomenta(site_index,stepSize, endMomentum,L_temp,P_temp);}
+        #pragma omp barrier
+        if(omp_get_thread_num() == 0 && i == steps-2)
+        {
+          P_temp =endMomentum;
+          L_temp = Lcopy;
+        }
+        #pragma omp barrier
+      }
     }
+    //Add last step of leapfrog!!!
+    #pragma omp for
+    for(site_index=0; site_index < L.nsites;site_index++)
+    {updateFields(site_index,stepSize,P_temp, L_temp, Lcopy);}
+    #pragma omp barrier
+
+    #pragma omp for
+    for(site_index=0; site_index < L.nsites;site_index++)
+    {updateMomenta(site_index,stepSize/2.0, P_temp,Lcopy,endMomentum);}
+    #pragma omp barrier
+    if(omp_get_thread_num() == 0)
+    {
+      P_temp =endMomentum;
+      L_temp = Lcopy;
+    }
+    #pragma omp barrier
   }
 }
 
@@ -282,7 +323,6 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) 
   return phiDerivativePart + plaquettePart + miscPhiPart;
 }
 
-
 double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, const lattice& L_in) const
 {
   //Declaration
@@ -343,7 +383,6 @@ double simulation::georgiGlashowAction(const lattice& L_in) const
   return total;
 }
 
-
 double simulation::kineticTerm(const Plattice& P_in) const
 {
   double momenta_total = 0.0;
@@ -359,13 +398,13 @@ double simulation::kineticTerm(const Plattice& P_in) const
     for(site_index=0;site_index < P_in.nsites; site_index++)
     {
       FORALLDIR(i)
-        local_momenta+= P_in.site[site_index].link[i] *  P_in.site[site_index].link[i];
+      local_momenta+= P_in.site[site_index].link[i] *  P_in.site[site_index].link[i];
       local_momenta+=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs;
       if( isnan(local_momenta.trace().real())  )
       {
         std::cout << "NAN ERROR: at site " << site_index << std::endl ;
         FORALLDIR(i)
-          std::cout <<   P_in.site[site_index].link[i] << std::endl;
+        std::cout <<   P_in.site[site_index].link[i] << std::endl;
         std::cout <<   P_in.site[site_index].higgs << std::endl;
         exit(1);
       }
@@ -387,11 +426,11 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
   int i;
 
   field_total = georgiGlashowAction(L_in);
-    std::cout << "Field total: " << field_total << std::endl;
+  std::cout << "Field total: " << field_total << std::endl;
 
   kinetic_total = kineticTerm(P_in);
-    std::cout << "Momenta total: " << kinetic_total << std::endl;
-    total = kinetic_total + field_total;
+  std::cout << "Momenta total: " << kinetic_total << std::endl;
+  total = kinetic_total + field_total;
   return total;
 }
 
@@ -469,8 +508,6 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
     return temp;
 }
 
-
-
 //Observables
 double simulation::averagePlaquettes() const
 {
@@ -524,10 +561,10 @@ const matrix_complex simulation::averagePhi2() const
     #pragma omp for
     for(long unsigned int i = 0; i< L.nsites;i++)
     {
-        local_subtotal+= L.site[i].higgs * L.site[i].higgs;
+      local_subtotal += L.site[i].higgs * L.site[i].higgs;
     }
     #pragma omp critical
-    subtotal+=local_subtotal;
+    subtotal += local_subtotal;
   }
   return subtotal / static_cast<double>(L.nsites);
 }
@@ -615,6 +652,7 @@ const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,i
   else
     return L_in.site[new_index].higgs;
 }
+
 //const matrix_complex simulation::cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
 //const matrix_complex simulation::twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
 void simulation::printAcceptance() const
