@@ -140,13 +140,13 @@ simulation::~simulation()
 }
 
 //HMC routines
-
+/* I'm temporarily removing the Higgs field updates. I want to look at the gauge field convergence rates 1/28/21 Paul */
 void simulation::updateFields(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, lattice& L_out )
 {
   int dir;
   FORALLDIR(dir)
     L_out.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0,1.0) * time_step * P_in.site[site_index].link[dir] )) * L_in.site[site_index].link[dir] ;
-  L_out.site[site_index].higgs = L_in.site[site_index].higgs + time_step * P_in.site[site_index].higgs;
+  //L_out.site[site_index].higgs = L_in.site[site_index].higgs + time_step * P_in.site[site_index].higgs;
 }
 
 void simulation::updateMomenta(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, Plattice& P_out )
@@ -154,7 +154,7 @@ void simulation::updateMomenta(long unsigned site_index,double time_step, const 
   int dir;
   FORALLDIR(dir)
     P_out.site[site_index].link[dir] = P_in.site[site_index].link[dir] - time_step/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_in)  ;
-  P_out.site[site_index].higgs = P_in.site[site_index].higgs - time_step/2.0 * georgiGlashowActionPhiDerivative(site_index, L_in);
+  //P_out.site[site_index].higgs = P_in.site[site_index].higgs - time_step/2.0 * georgiGlashowActionPhiDerivative(site_index, L_in);
 }
 
 void simulation::initializeHMC()
