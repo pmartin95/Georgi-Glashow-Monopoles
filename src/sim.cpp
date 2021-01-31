@@ -267,8 +267,8 @@ bool simulation::metropolisDecision()
   //should return true if to accept configuration, otherwise replace with copy and start over
   H_new = georgiGlashowHamiltonian(Lcopy,endMomentum);
   H_old = georgiGlashowHamiltonian(L,startMomentum);
-  std::cout << "H new: " << H_new << " H old: " << H_old << std::endl;
-  std::cout << "delta H: " << H_new-H_old << std::endl;
+  // std::cout << "H new: " << H_new << " H old: " << H_old << std::endl;
+  // std::cout << "delta H: " << H_new-H_old << std::endl;
   expResult = std::min(exp(H_old - H_new), 1.0);
   randomDecider = uniformReal(randomGenerator);
   //std::cout << "exp: " << expResult << "  random: " << randomDecider << std::endl;
