@@ -4,6 +4,8 @@
 #include<fstream>
 #include<complex>
 #include<cstdlib>
+#include<cmath>
+#include<vector>
 #include <omp.h>
 #include "lattice.h"
 #include "rand.h"
@@ -13,88 +15,34 @@
 
 int main()
 {
-  matrix_complex higgsZero, linkIdentity;
-  higgsZero.setZero(); linkIdentity.setIdentity();
-  lattice_site cold_site(linkIdentity, higgsZero);
-  lattice cold_lattice(cold_site);
-//
-//   // //Initialize Simulation -> lattice
-//
-  simulation sim1;
-  simulation sim2(cold_lattice);
+std::vector<unsigned int> N_Steps;
+std::vector<double> H_diff_average;
+simulation sim1;
+  for(int i=0;i<30;i++)
+    sim1.initializeHMC();
+int temp_step = 2;
+double temp_hdiff = 0.0d;
+int i,j;
 
-  int stepsArray[3];
-  double HdiffArray1[3] = {0.0d}, HdiffArray2[3] = {0.0d};
+for(i=0;i<10;i++)
+{
+  N_Steps.push_back(temp_step);
+  sim1.setupSteps(temp_step);
+  std::cout << "Performing " << j << " runs with " << temp_step << " intervals\n";
+  for(j=0;j<30;j++)
+    temp_hdiff += abs( sim1.runLeapfrogSimulation() );
+  std::cout << "step size: " << sim1.stepSize << std::endl;
+  std::cout << "On to the next one!" << std::endl;
+  H_diff_average.push_back(temp_hdiff/static_cast<double>(j));
+  temp_step *= 2;
 
-
-  // std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L) - sim1.georgiGlashowActionLinkDerivative(10,1,sim1.L).adjoint() << std::endl;
-  // std::cout << "force * force.adjoint()= " << sim1.georgiGlashowActionPhiDerivative(10,sim1.L) - sim1.georgiGlashowActionPhiDerivative(10,sim1.L).adjoint() << std::endl;
-  sim1.setupSteps(10);
-  sim2.setupSteps(1000);
-
-  for(int i = 0; i < 5;i++)
-  {
-    //mytime time1;
-    //time1.stopwatchStart();
-    //sim1.initializeHMC();
-    //std::cout << "Initialization step: " << i << " of 30. Sim1 time: " << time1.stopwatchReadSeconds() << std::endl << std::endl;
-    //time1.stopwatchStart();
-    sim2.initializeHMC();
-      std::cout << "<Phi> = " << sim1.averagePhi() << std::endl;
-      std::cout << "<Phi^2> = " << sim1.averagePhi2() << std::endl;
-      std::cout << "Average plaquette = " << sim1.averagePlaquettes() << std::endl;
-    //std::cout << "Initialization step: " << i << " of 30. Sim2 time: " << time1.stopwatchReadSeconds() << std::endl << std::endl;
-  }
-//
-//
-//   int current_steps = 10;
-//   // //Run HMC
-//   for(int j=0; j<3;j++)
-//   {
-//     stepsArray[j] = current_steps;
-//     sim1.setupSteps(current_steps);
-//     sim2.setupSteps(current_steps);
-//     for(int i=0; i < 1;i++)
-//     {
-//       HdiffArray1[j] += std::abs(sim1.runLeapfrogSimulation());
-//       HdiffArray2[j] += std::abs(sim2.runLeapfrogSimulation());
-//     }
-//     HdiffArray1[j] /= 1.00;
-//     HdiffArray2[j] /= 1.00;
-//     current_steps *= 10;
-//   }
-//
-// ofstream hot_data, cold_data;
-// hot_data.open("hot_data1.txt",std::ios::out);
-// cold_data.open("cold_data1.txt",std::ios::out);
-// for(int i = 0;i <3; i++)
-// {
-//   hot_data << stepsArray[i] << " " << HdiffArray1[i] << std::endl;
-//   cold_data << stepsArray[i] << " " << HdiffArray2[i] << std::endl;
-// }
-//
-// hot_data.close();
-// cold_data.close();
-//     std::cout << "Hamiltonian: " << sim1.Hamiltonian() << std::endl;
-//
-//   sim1.printAcceptance();
-//   sim1.printAcceptance();
-//
-//   ////Measure observables (average plaquette)
-//   std::cout << "<Phi> = " << sim1.averagePhi() << std::endl;
-//   std::cout << "<Phi^2> = " << sim1.averagePhi2() << std::endl;
-//   std::cout << "Average plaquette = " << sim1.averagePlaquettes() << std::endl;
-
-// simulation sim1;
-//
-// for(int i = 10;i < 100;i*=10 )
-// {
-//   sim1.setupSteps(i);
-//   std::cout << "i= " << i << std::endl;
-//   sim1.runLeapfrogSimulation();
-//   std::cout  << std::endl << std::endl;
-// }
+}
 
 
+std::ofstream datafile;
+datafile.open("Hdiffdata.txt");
+for(i=0;i<10;i++)
+  datafile << N_Steps[i] << " " << H_diff_average[i] << std::endl;
+datafile.close();
   return 0;
 }
