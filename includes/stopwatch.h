@@ -1,10 +1,10 @@
 #ifndef _STOPWATCH_H_
 #define _STOPWATCH_H_
-class mytime{
+class mytime {
 public:
-  void stopwatchStart();
-  double stopwatchReadSeconds();
+void stopwatchStart();
+double stopwatchReadSeconds();
 private:
-  struct timeval myStartTime;
+struct timeval myStartTime;
 };
 #endif
