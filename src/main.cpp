@@ -20,6 +20,8 @@ int main()
         simulation sim1;
         for(int i=0; i<30; i++)
                 sim1.initializeHMC();
+
+        std::cout << "Initialization complete.\n";
         int temp_step = 2;
         double temp_hdiff = 0.0d;
         int i,j;
