@@ -13,53 +13,46 @@ simulation::simulation()
 {
         nAccepts = 0;
         nRejects = 0;
-        std::mt19937_64 randTemp(seedGen());
-        randomGenerator = randTemp;
         steps = DEFAULT_STEPS;
         stepSize = DEFAULT_STEP_SIZE;
         m2 = DEFAULT_M2;
         lambda = DEFAULT_LAMBDA;
         g = DEFAULT_STARTING_G;
+        std::mt19937_64 randTemp(seedGen());
+        randomGenerator = randTemp;
         L = lattice(randomGenerator);
-        Lcopy = L;
-        L_temp = Lcopy;
-        startMomentum = Plattice(randomGenerator);
-        endMomentum = startMomentum;
-        P_temp = endMomentum;
+        Ltemp[0] = L;
+        Ltemp[1] = Ltemp[0];
+        P = Plattice(randomGenerator);
+        Ptemp[0] = P;
+        Ptemp[1] = Ptemp[0];
         setupBoundaryConditions('p');
 }
 
 simulation::simulation(const simulation& sim)
 {
-        nAccepts = 0;
-        nRejects = 0;
-        randomGenerator = sim.randomGenerator;
+        nAccepts = sim.nAccepts;
+        nRejects = sim.nRejects;
         steps = sim.steps;
         stepSize = sim.stepSize;
         m2 = sim.m2;
         lambda = sim.lambda;
         g = sim.g;
+
+        randomGenerator = sim.randomGenerator;
+
         L = sim.L;
-        Lcopy = L;
-        startMomentum = sim.startMomentum;
-        endMomentum = sim.endMomentum; //This might need to be changed later
+        Ltemp[0] = sim.Ltemp[0];
+        Ltemp[1] = sim.Ltemp[1];
+        P = sim.P;
+        Ptemp[0] = sim.Ptemp[0];
+        Ptemp[1] = sim.Ptemp[1];
         boundary_condition = sim.boundary_condition;
 }
 
 simulation::simulation(const simulation& sim, char boundaryType)
 {
-        nAccepts = 0;
-        nRejects = 0;
-        randomGenerator = sim.randomGenerator;
-        steps = sim.steps;
-        stepSize = sim.stepSize;
-        m2 = sim.m2;
-        lambda = sim.lambda;
-        g = sim.g;
-        L = sim.L;
-        Lcopy = L;
-        startMomentum = sim.startMomentum;
-        endMomentum = sim.endMomentum; //This might need to be changed later
+        (*this) = simulation(sim);
         setupBoundaryConditions(boundaryType);
 }
 
@@ -75,9 +68,12 @@ simulation::simulation(double m2_in,double lambda_in,double g_in)
         lambda = lambda_in;
         g = g_in;
         L = lattice(randomGenerator);
-        Lcopy = L;
-        startMomentum = Plattice(randomGenerator);
-        endMomentum = startMomentum;
+        Ltemp[0] = L;
+        Ltemp[1] = Ltemp[0];
+        P = Plattice(randomGenerator);
+        Ptemp[0] = P;
+        Ptemp[1] = Ptemp[0];
+
         setupBoundaryConditions('p');
 }
 
@@ -93,44 +89,25 @@ simulation::simulation(const lattice& L_in)
         lambda = DEFAULT_LAMBDA;
         g = DEFAULT_STARTING_G;
         L = L_in;
-        Lcopy = L;
-        startMomentum = Plattice(randomGenerator);
-        endMomentum = startMomentum;
+        Ltemp[0] = L;
+        Ltemp[1] = Ltemp[0];
+        P = Plattice(randomGenerator);
+        Ptemp[0] = P;
+        Ptemp[1] = Ptemp[0];
         setupBoundaryConditions('p');
 }
 
 simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in)
 {
-        nAccepts = 0;
-        nRejects = 0;
-        std::mt19937_64 randTemp(seedGen());
-        randomGenerator = randTemp;
-        steps = DEFAULT_STEPS;
-        stepSize = DEFAULT_STEP_SIZE;
+        (*this) = simulation(L_in);
         m2 = m2_in;
         lambda = lambda_in;
         g = g_in;
-        L = L_in;
-        Lcopy = L;
-        startMomentum = Plattice(randomGenerator);
-        endMomentum = startMomentum;
         setupBoundaryConditions('p');
 }
 simulation::simulation(double m2_in,double lambda_in,double g_in, const lattice& L_in, char boundaryType)
 {
-        nAccepts = 0;
-        nRejects = 0;
-        std::mt19937_64 randTemp(seedGen());
-        randomGenerator = randTemp;
-        steps = DEFAULT_STEPS;
-        stepSize = DEFAULT_STEP_SIZE;
-        m2 = m2_in;
-        lambda = lambda_in;
-        g = g_in;
-        L = L_in;
-        Lcopy = L;
-        startMomentum = Plattice(randomGenerator);
-        endMomentum = startMomentum;
+        (*this) = simulation( m2_in,lambda_in,g_in, L_in  );
         setupBoundaryConditions(boundaryType);
 }
 
@@ -139,188 +116,137 @@ simulation::~simulation()
 
 }
 
-//HMC routines
-/* I'm temporarily removing the Higgs field updates. I want to look at the gauge field convergence rates 1/28/21 Paul */
 void simulation::updateFields(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, lattice& L_out )
 {
         int dir;
+
+        #ifdef __GAUGE_EVOLUTION__
         FORALLDIR(dir)
         L_out.site[site_index].link[dir] = CayleyHamiltonExp((complex<double>(0.0,1.0) * time_step * P_in.site[site_index].link[dir] )) * L_in.site[site_index].link[dir];
-        //L_out.site[site_index].higgs = L_in.site[site_index].higgs + time_step * P_in.site[site_index].higgs;
+        #endif
+
+        #ifdef __HIGGS_EVOLUTION__
+        L_out.site[site_index].higgs = L_in.site[site_index].higgs + time_step * P_in.site[site_index].higgs;
+        #endif
 }
 
 void simulation::updateMomenta(long unsigned site_index,double time_step, const Plattice & P_in,const lattice & L_in, Plattice& P_out )
 {
         int dir;
+
+        #ifdef __GAUGE_EVOLUTION__
         FORALLDIR(dir)
-        P_out.site[site_index].link[dir] = P_in.site[site_index].link[dir] - time_step/2.0 * georgiGlashowActionLinkDerivative(site_index, dir, L_in);
-        //P_out.site[site_index].higgs = P_in.site[site_index].higgs - time_step/2.0 * georgiGlashowActionPhiDerivative(site_index, L_in);
+        P_out.site[site_index].link[dir] = P_in.site[site_index].link[dir] - time_step * georgiGlashowActionLinkDerivative(site_index, dir, L_in);
+        #endif
+
+        #ifdef __HIGGS_EVOLUTION__
+        P_out.site[site_index].higgs = P_in.site[site_index].higgs - time_step * georgiGlashowActionPhiDerivative(site_index, L_in);
+        #endif
 }
 
 void simulation::initializeHMC()
 {
-        for(int i = 0; i< steps; i++)
-        {
-                leapfrogOneStep();
-        }
-        std::cout << "\\Delta H: " << georgiGlashowHamiltonian(L,startMomentum) - georgiGlashowHamiltonian(Lcopy,endMomentum) << std::endl;
-        //resetMomenta();
-        L = Lcopy;
-        startMomentum = endMomentum;
+        leapfrogOneStep();
+        L = Ltemp[0];
+        P = Ptemp[0];
+        Ptemp[1] = Ptemp[0];
+        Ltemp[1] = Ltemp[0];
 }
 
 double simulation::runLeapfrogSimulation()
 {
+        double Hdiff;
 
         leapfrogOneStep();
-
-        double Hdiff = georgiGlashowHamiltonian(L, startMomentum) - georgiGlashowHamiltonian(Lcopy, endMomentum);
-
+        Hdiff = georgiGlashowHamiltonian(L, P) - georgiGlashowHamiltonian(Ltemp[0], Ptemp[0]);
         if(metropolisDecision())
-        {
-                L = Lcopy;
-                resetMomenta();
-        }
+                copyLatticeAndRefresh(Ltemp[0],L);
         else
-        {
-                Lcopy = L;
-                resetMomenta();
-        }
+                copyLatticeAndRefresh(L,Ltemp[0]);
+        #ifdef __CHECK_LATTICE__
+        isLatticeConsistent(L);
+        #endif
         return Hdiff;
+}
+
+void simulation::copyLatticeAndRefresh(const lattice & L_in,lattice & L_out)
+{
+        L_out = L_in;
+        resetMomenta();
+}
+
+void simulation::copyLatticePlattice(const lattice & L_in, const Plattice & P_in, lattice & L_out, Plattice & P_out)
+{
+        L_out = L_in;
+        P_out = P_in;
 }
 
 void simulation::leapfrogOneStep()
 {
         long unsigned int site_index;
+        int i;
 
-  #pragma omp parallel default(none)
+//Initial Step
+        #pragma omp parallel for
+        for(site_index=0; site_index < L.nsites; site_index++)
+                updateMomenta(site_index,stepSize/2.0, Ptemp[0],Ltemp[0], Ptemp[1]);
+
+//Intermediate Steps
+        for(i = 0; i<steps-1; i++)
         {
-
-    #pragma omp for
-                for(site_index=0; site_index < L.nsites; site_index++)
-                {updateMomenta(site_index,stepSize/2.0, endMomentum,Lcopy, P_temp);}
-    #pragma omp barrier
-
-                for(int i = 0; i<steps-1; i++)
-                {
-                        if(i%2 == 0)
-                        {
-        #pragma omp for
-                                for(site_index=0; site_index < L.nsites; site_index++)
-                                {updateFields(site_index,stepSize,P_temp,Lcopy, L_temp );}
-        #pragma omp barrier
-
-        #pragma omp for
-                                for(site_index=0; site_index < L.nsites; site_index++)
-                                {updateMomenta(site_index,stepSize, P_temp,Lcopy,endMomentum);}
-        #pragma omp barrier
-                                if(omp_get_thread_num() == 0 && i == steps-2)
-                                {
-                                        endMomentum = P_temp;
-                                        Lcopy = L_temp;
-                                }
-        #pragma omp barrier
-                        }
-                        else
-                        {
-        #pragma omp for
-                                for(site_index=0; site_index < L.nsites; site_index++)
-                                {updateFields(site_index,stepSize,endMomentum,L_temp, Lcopy );}
-        #pragma omp barrier
-
-        #pragma omp for
-                                for(site_index=0; site_index < L.nsites; site_index++)
-                                {updateMomenta(site_index,stepSize, endMomentum,L_temp,P_temp);}
-        #pragma omp barrier
-                                if(omp_get_thread_num() == 0 && i == steps-2)
-                                {
-                                        P_temp =endMomentum;
-                                        L_temp = Lcopy;
-                                }
-        #pragma omp barrier
-                        }
-                }
-                //Add last step of leapfrog!!!
-    #pragma omp for
-                for(site_index=0; site_index < L.nsites; site_index++)
-                {updateFields(site_index,stepSize,P_temp, L_temp, Lcopy);}
-    #pragma omp barrier
-
-    #pragma omp for
-                for(site_index=0; site_index < L.nsites; site_index++)
-                {updateMomenta(site_index,stepSize/2.0, P_temp,Lcopy,endMomentum);}
-    #pragma omp barrier
-                if(omp_get_thread_num() == 0)
-                {
-                        P_temp =endMomentum;
-                        L_temp = Lcopy;
-                }
-    #pragma omp barrier
+                wholeStepEvolve(Ltemp[i%2],Ptemp[(i+1)%2],  Ltemp[(i+1)%2], Ptemp[i%2] );
+                if( i == steps-2)
+                        copyLatticePlattice(  Ltemp[(i+1)%2],Ptemp[i%2], Ltemp[i%2],Ptemp[(i+1)%2] );
         }
+//Last step
+        #pragma omp parallel for
+        for(site_index=0; site_index < L.nsites; site_index++)
+                updateFields(site_index,stepSize,Ptemp[0], Ltemp[0], Ltemp[1]);
+
+        #pragma omp parallel for
+        for(site_index=0; site_index < L.nsites; site_index++)
+                updateMomenta(site_index,stepSize/2.0, Ptemp[0],Ltemp[1],Ptemp[1]);
+
+        copyLatticePlattice(Ltemp[1],Ptemp[1],Ltemp[0],Ptemp[0]);
+
 }
 
+void simulation::wholeStepEvolve(lattice L_in, Plattice P_in, lattice L_out, Plattice P_out)
+{
+  #pragma parallel
+        {
+                #pragma omp for
+                for(long unsigned site_index=0; site_index < L.nsites; site_index++)
+                        updateFields(site_index,stepSize,P_in,L_in, L_out );
+
+                #pragma omp for
+                for(long unsigned site_index=0; site_index < L.nsites; site_index++)
+                        updateMomenta(site_index,stepSize, P_in,L_in,P_out);
+        }
+
+}
+
+//This function should return true if the new config is to be accepted
 bool simulation::metropolisDecision()
 {
         double expResult;
         double randomDecider;
         double H_new, H_old;
-        //should return true if to accept configuration, otherwise replace with copy and start over
-        H_new = georgiGlashowHamiltonian(Lcopy,endMomentum);
-        H_old = georgiGlashowHamiltonian(L,startMomentum);
-        // std::cout << "H new: " << H_new << " H old: " << H_old << std::endl;
-        // std::cout << "delta H: " << H_new-H_old << std::endl;
+        bool updateStatus;
+        H_new = georgiGlashowHamiltonian(Ltemp[0],Ptemp[0]);
+        H_old = georgiGlashowHamiltonian(L,P);
         expResult = std::min(exp(H_old - H_new), 1.0);
         randomDecider = uniformReal(randomGenerator);
-        //std::cout << "exp: " << expResult << "  random: " << randomDecider << std::endl;
-        if(expResult > randomDecider)
-        {
-                nAccepts++;
-                return true;
-        }
-        else
-        {
-                nRejects++;
-                return false;
-        }
+        updateStatus = (expResult > randomDecider);
+        AcceptanceCounter(updateStatus);
+        return updateStatus;
 }
 ////NOTE FOR PAUL
 // I think the issue lies in the phiDerivativePart
 //Action functions
 double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index) const
 {
-        //Declaration
-        matrix_complex mainPhi, mainLink[4];
-        double phiSquareTrace;
-        double phiDerivativePart = 0.0, plaquettePart = 0.0, miscPhiPart = 0.0;
-        int jumpNone[4] = {0};
-        int dir,i,j;
-        //Initialization
-        mainPhi = matCall(L,5,site_index,jumpNone);
-        FORALLDIR(dir)
-        mainLink[dir] = matCall(L,dir,site_index,jumpNone);
-        phiSquareTrace = (mainPhi * mainPhi).trace().real();
-
-        //Phi "derivative"
-        phiDerivativePart = 4.0 * phiSquareTrace;
-        FORALLDIR(dir)
-        {
-                int jumpTemp[4] = {0};
-                jumpTemp[dir]++;
-                phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
-        }
-        phiDerivativePart *= 2.0;
-        //plaquette
-        FORALLDIRLESSTHAN(i,j)
-        {
-                int muJump[4] = {0}, nuJump[4] = {0};
-                muJump[i]++; nuJump[j]++;
-                plaquettePart += 2.0 - ( mainLink[i] * matCall(L,i,site_index,muJump) * matCall(L,j,site_index,nuJump).adjoint() * mainLink[j].adjoint() ).trace().real();
-        }
-        plaquettePart *= 2.0/(g*g);
-        //other phi terms
-        miscPhiPart = m2 * phiSquareTrace + lambda * phiSquareTrace *phiSquareTrace;
-        phiDerivativePart = 0.0; ////
-        return phiDerivativePart + plaquettePart + miscPhiPart;
+        return georgiGlashowLagrangianDensity(site_index,L);
 }
 
 double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, const lattice& L_in) const
@@ -377,7 +303,7 @@ double simulation::georgiGlashowAction(const lattice& L_in) const
                 {
                         local_total += georgiGlashowLagrangianDensity(i,L_in);
                 }
-    #pragma omp critical
+    #pragma omp atomic
                 total+=local_total;
         }
         return total;
@@ -387,20 +313,23 @@ double simulation::kineticTerm(const Plattice& P_in) const
 {
         double momenta_total = 0.0;
         matrix_complex momenta_matrix;
+
         long unsigned site_index;
         momenta_matrix.setZero();
   #pragma omp parallel default(shared)
         {
-                matrix_complex local_momenta;
-                local_momenta.setZero();
+                matrix_complex momenta_matrix_higgs,momenta_matrix_gauge;
+                momenta_matrix_gauge.setZero();
+                momenta_matrix_higgs.setZero();
                 int i;
     #pragma omp for
                 for(site_index=0; site_index < P_in.nsites; site_index++)
                 {
                         FORALLDIR(i)
-                        local_momenta+= P_in.site[site_index].link[i] *  P_in.site[site_index].link[i];
-                        local_momenta+=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs;
-                        if( isnan(local_momenta.trace().real())  )
+                        momenta_matrix_gauge+= P_in.site[site_index].link[i] *  P_in.site[site_index].link[i];
+                        momenta_matrix_higgs+=   P_in.site[site_index].higgs *  P_in.site[site_index].higgs;
+                        #ifdef __CHECK_NAN__
+                        if( isnan(momenta_matrix_gauge.trace().real()) ||  isnan(momenta_matrix_higgs.trace().real())  )
                         {
                                 std::cout << "NAN ERROR: at site " << site_index << std::endl;
                                 FORALLDIR(i)
@@ -408,13 +337,19 @@ double simulation::kineticTerm(const Plattice& P_in) const
                                 std::cout <<   P_in.site[site_index].higgs << std::endl;
                                 exit(1);
                         }
+                        #endif
                 }
+
     #pragma omp critical
-                momenta_matrix += local_momenta;
+                {
+                        momenta_matrix += momenta_matrix_gauge;
+                        momenta_matrix += momenta_matrix_higgs;
+                }
         }
 
+
         momenta_total = momenta_matrix.trace().real();
-        return momenta_total/4.0;
+        return momenta_total;
 }
 
 
@@ -426,17 +361,17 @@ double simulation::georgiGlashowHamiltonian(const lattice& L_in, const Plattice&
         int i;
 
         field_total = georgiGlashowAction(L_in);
-        std::cout << "Field total: " << field_total << std::endl;
+        //std::cout << "Field total: " << field_total << std::endl;
 
         kinetic_total = kineticTerm(P_in);
-        std::cout << "Momenta total: " << kinetic_total << std::endl;
+        //std::cout << "Momenta total: " << kinetic_total << std::endl;
         total = kinetic_total + field_total;
         return total;
 }
 
 double simulation::Hamiltonian() const
 {
-        return georgiGlashowHamiltonian(L,startMomentum) /L.nsites;
+        return georgiGlashowHamiltonian(L,P) /L.nsites;
 }
 
 const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const //
@@ -500,11 +435,11 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
                 temp3 += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
         }
         temp1 = matCall(L_in,4,site_index,jumpNone);
-        temp1 = (8.0 * lambda *temp1*(temp1*temp1).trace() + (4.0*m2* +32.0)*temp1  );
+        temp1 = (2.0 * lambda *temp1*(temp1*temp1).trace() + (m2+8.0)*temp1  );
 
         //std::cout << "Link force, temp1: " << temp1 << std::endl;
-        temp = 4.0*(temp2 + temp3) - temp1;
-        temp = temp - temp.trace() / 2.0 * Iden;
+        temp = (temp2 + temp3);
+        temp =temp1 - temp + temp.trace() / 2.0 * Iden;
         return temp;
 }
 
@@ -614,10 +549,16 @@ void simulation::setupSteps(int Nsteps)
 }
 void simulation::resetMomenta()
 {
-        startMomentum = Plattice(randomGenerator);
-        endMomentum = startMomentum;
+        P = Plattice(randomGenerator);
+        Ptemp[0] = P;
+        Ptemp[1] = Ptemp[0];
 }
 
+void simulation::resetAcceptanceCounter()
+{
+        nAccepts = 0;
+        nRejects = 0;
+}
 
 const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index,const int jump[4]) const
 {
@@ -655,6 +596,14 @@ const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,i
 
 //const matrix_complex simulation::cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
 //const matrix_complex simulation::twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
+void simulation::AcceptanceCounter(bool updateStatus)
+{
+        if(updateStatus)
+                nAccepts++;
+        else
+                nRejects++;
+}
+
 void simulation::printAcceptance() const
 {
         if(nAccepts + nRejects > 0)
@@ -668,10 +617,8 @@ void simulation::printAcceptance() const
 
 void simulation::printSite(long unsigned int site_index) const
 {
-        std::cout << L.site[site_index].link[0] <<std::endl;
-        std::cout << L.site[site_index].link[1] <<std::endl;
-        std::cout << L.site[site_index].link[2] <<std::endl;
-        std::cout << L.site[site_index].link[3] <<std::endl;
+        for(int i =0; i < 4; i++)
+                std::cout << L.site[site_index].link[i] <<std::endl;
         std::cout << L.site[site_index].higgs <<std::endl <<std::endl;
 }
 
@@ -720,4 +667,68 @@ matrix_complex CayleyHamiltonExp(const matrix_complex & A)
         iden.setIdentity();
 
         return std::cosh(M) * iden + std::sinh(M)/M *A;
+}
+
+bool isSU2(const matrix_complex & A)
+{
+        matrix_complex B;
+        double temp;
+        B = A * A.adjoint();
+        temp = 2.0d - B.trace().real();
+        if(std::abs(temp)>CLOSETOZERO)
+                return false;
+        else
+                return true;
+}
+bool isTraceless(const matrix_complex & A)
+{
+        double temp;
+        temp = A.trace().real();
+        if(std::abs(temp)>CLOSETOZERO)
+                return false;
+        else
+                return true;
+}
+
+bool isHermitian(const matrix_complex &A)
+{
+        matrix_complex B;
+        double temp;
+        B = A - A.adjoint();
+        temp = std::abs(B(0,0)) + std::abs(B(1,0)) + std::abs(B(0,1)) + std::abs(B(1,1));
+        if(std::abs(temp)>CLOSETOZERO)
+                return false;
+        else
+                return true;
+}
+
+bool isLatticeConsistent(const lattice &L_in )
+{
+        long unsigned lattice_index;
+        int dir_index;
+        matrix_complex temp_higgs, temp_gauge[4];
+
+
+        for(lattice_index = 0; lattice_index < L_in.nsites; lattice_index++)
+        {
+                temp_higgs = L_in.site[lattice_index].higgs;
+                FORALLDIR(dir_index)
+                {
+                        temp_gauge[dir_index]=L_in.site[lattice_index].link[dir_index];
+                        if( !isSU2(temp_gauge[dir_index]) )
+                        {
+                                std::cout << "Inconsistent lattice: gauge field at " << lattice_index << std::endl;
+                                std::cout << temp_gauge[dir_index] << std::endl;
+                        }
+
+                }
+                if( !isTraceless(temp_higgs) || !isHermitian(temp_higgs) )
+                {
+                        std::cout << "Inconsistent lattice: Higgs field at " << lattice_index << std::endl;
+                        return false;
+                }
+        }
+
+        return true;
+
 }
