@@ -6,7 +6,7 @@
 #include <Eigen/Dense>
 #include <random>
 #include <vector>
-#define DEFAULT_LATTICE_SIZE 8
+#define DEFAULT_LATTICE_SIZE 2
 #define FORALLDIR(i) for(i = 0; i<4; i++)
 #define FORALLDIRBUT(i,dir) for(i=0; i<4; i++) if(i != dir)
 #define FORALLDIRLESSTHAN(i,j) for( j = 0; j<4; j++) for(i=0; i<j; i++)
@@ -28,7 +28,7 @@ const matrix_complex& output() const;
 const matrix_complex& output(int i) const;
 friend std::ostream& operator <<(std::ostream& outputStream,const lattice_site& site1);
 lattice_site& operator =(const lattice_site& site1);
-private:
+//private:
 matrix_complex link[4];
 matrix_complex higgs;
 };
@@ -45,7 +45,7 @@ const matrix_complex& output() const;
 const matrix_complex& output(int i) const;
 friend std::ostream& operator <<(std::ostream& outputStream,const Plattice_site& site1);
 Plattice_site& operator =(const Plattice_site& site1);
-private:
+//private:
 matrix_complex link[4];
 matrix_complex higgs;
 };
@@ -72,7 +72,7 @@ long unsigned int coordinateToIndex(int (&coordinates)[4]) const;
 long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
 void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
 void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
-private:
+//private:
 int nt,nx,ny,nz;
 int ns[4];
 long int nsites;
@@ -100,7 +100,7 @@ long unsigned int coordinateToIndex(int (&coordinates)[4]) const;
 long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
 void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
 void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
-private:
+//private:
 int nt,nx,ny,nz;
 int ns[4];
 long int nsites;
