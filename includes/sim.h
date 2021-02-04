@@ -48,8 +48,10 @@ void leapfrogOneStep();
 void wholeStepEvolve(lattice L_in, Plattice P_in, lattice L_out, Plattice P_out);
 bool metropolisDecision();
 //Metropolis Hastings Routines
-void evolveGaugeFieldMHMC(long unsigned int site_index, int dir);
-void evolveHiggsFieldMHMC(long unsigned int site_index);
+void evolveFieldMHMC(long unsigned int site_index, int dir);
+void evolveFieldMHMC(long unsigned int site_index);
+double actionDifference(long unsigned int site_index, int dir);
+double actionDifference(long unsigned int site_index);
 //Action functions
 double georgiGlashowLagrangianDensity(long unsigned int) const;
 double georgiGlashowLagrangianDensity(long unsigned int, const lattice& L_in) const;
@@ -72,6 +74,7 @@ void setupParams(double m2_in);
 void setupSteps(int Nsteps);
 void resetMomenta();
 void resetAcceptanceCounter();
+//Boundary Conditions
 const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]) const;
 //const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
 //const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
@@ -86,6 +89,7 @@ double stepSize;
 double m2, lambda, g;
 const matrix_complex plaquette(long unsigned site_index, int dir1, int dir2) const;
 const matrix_complex plaquette(const lattice& L_in,long unsigned site_index, int dir1, int dir2) const;
+const matrix_complex mixedGaugeHiggsTerm(const lattice& L_in, long unsigned site_index, int dir) const;
 lattice L, Ltemp[2];
 Plattice P, Ptemp[2];
 std::mt19937_64 randomGenerator;
