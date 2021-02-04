@@ -281,6 +281,15 @@ long unsigned int lattice::jumpIndex(long unsigned int index, int dir, int jump)
         return coordinateToIndex(x);
 }
 
+long unsigned int lattice::jumpIndex(long unsigned int index,int (&jump)[4])
+{
+  int x[4] = {0},dir;
+  indexToCoordinate(index, x);
+  FORALLDIR(dir)
+  x[dir] += jump[dir];
+  return coordinateToIndex(x);
+}
+
 void lattice::indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const
 {
         long unsigned int temp = index;
