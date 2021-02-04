@@ -115,13 +115,17 @@ void simulation::sweepMHMC()
         int dir;
         for(site_index = 0; site_index< L.nsites; site_index++)
         {
+                #ifdef __GAUGE_EVOLUTION__
                 FORALLDIR(dir)
                 {
                         evolveFieldMHMC(site_index, dir);
                         acceptOrReject(site_index,dir);
                 }
+                #endif
+                #ifdef __HIGGS_EVOLUTION__
                 evolveFieldMHMC(site_index, dir);
                 acceptOrReject(site_index,dir);
+                #endif
         }
 }
 
