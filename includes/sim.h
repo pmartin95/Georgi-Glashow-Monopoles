@@ -47,6 +47,9 @@ void copyLatticePlattice(const lattice & L_in, const Plattice & P_in, lattice & 
 void leapfrogOneStep();
 void wholeStepEvolve(lattice L_in, Plattice P_in, lattice L_out, Plattice P_out);
 bool metropolisDecision();
+//Metropolis Hastings Routines
+void evolveGaugeFieldMHMC(long unsigned int site_index, int dir);
+void evolveHiggsFieldMHMC(long unsigned int site_index);
 //Action functions
 double georgiGlashowLagrangianDensity(long unsigned int) const;
 double georgiGlashowLagrangianDensity(long unsigned int, const lattice& L_in) const;
@@ -61,7 +64,7 @@ const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int site_ind
 double averagePlaquettes() const;   //
 const matrix_complex averagePhi() const;
 const matrix_complex averagePhi2() const;
-//Setup functions
+//Setup and Reset functions
 void setupBoundaryConditions();
 void setupBoundaryConditions( char boundaryType);
 void setupParams(double m2_in,double lambda_in, double g_in);
