@@ -41,14 +41,36 @@ const matrix_complex uniformSU2Matrix( std::mt19937_64& g ) // Identity plus an 
                 a[i] = uniformReal(g,-1.0,1.0);
                 total += a[i] * a[i];
         }
-        total = sqrt(total);
+        total = 1/sqrt(total);
         for(int i=0; i<4; i++)
-                a[i] /= total;
+                a[i] *= total;
         su(0,0) = complex<double>(a[0],a[1]);
         su(1,1) = complex<double>(a[0],-a[1]);
         su(0,1) = complex<double>(a[2],a[3]);
         su(1,0) = complex<double>(-a[2],a[3]);
         return su;
+}
+
+const matrix_complex smallSU2Matrix( std::mt19937_64& g )
+{
+  double a[4], total,epsilon;
+  matrix_complex su;
+  total = 0;
+  for(int i=1; i<4; i++)
+  {
+          a[i] = uniformReal(g,-1.0,1.0);
+          total += a[i] * a[i];
+  }
+  epsilon = uniformReal(g,0.0,EPSILON_MAX);
+  total = epsilon/sqrt(total);
+  for(int i=1; i<4; i++)
+          a[i] *= total;
+  a[0] = 1.0d - epsilon*epsilon;
+  su(0,0) = complex<double>(a[0],a[1]);
+  su(1,1) = complex<double>(a[0],-a[1]);
+  su(0,1) = complex<double>(a[2],a[3]);
+  su(1,0) = complex<double>(-a[2],a[3]);
+  return su;
 }
 
 const double uniformReal(std::mt19937_64& g)
