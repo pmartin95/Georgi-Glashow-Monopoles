@@ -438,3 +438,16 @@ const matrix_complex simulation::plaquette(const lattice& L_in,long unsigned sit
 
         return u1*u2*u3*u4;
 }
+//This function computes the mixed term in the georgi glashow lagrangian
+const matrix_complex simulation::mixedGaugeHiggsTerm(const lattice& L_in, long unsigned site_index, int dir) const
+{
+  matrix_complex u1, u2, u3, u4;
+  int jump[4] ={0},jumpNone[4] = {0};
+  jump[dir]++;
+  u1 = matCall(L_in,4, site_index,jumpNone);
+  u2 = matCall(L_in,dir, site_index,jumpNone);
+  u3 = matCall(L_in,4, site_index,jump);
+  u4 = matCall(L_in,dir, site_index,jumpNone).adjoint();
+
+  return u1*u2*u3*u4;
+}
