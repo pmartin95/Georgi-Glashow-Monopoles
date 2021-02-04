@@ -70,6 +70,7 @@ void infoPrint() const;
 long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
 long unsigned int coordinateToIndex(int (&coordinates)[4]) const;
 long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
+long unsigned int jumpIndex(long unsigned int index,int (&jump)[4]);
 void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
 void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
 //private:
