@@ -3,7 +3,7 @@
 #ifndef __SIMULATION__
 
 #define __SIMULATION__
-//#define __GAUGE_EVOLUTION__
+#define __GAUGE_EVOLUTION__
 #define __HIGGS_EVOLUTION__
 
 #define __CHECK_NAN__
