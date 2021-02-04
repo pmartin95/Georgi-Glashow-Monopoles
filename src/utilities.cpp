@@ -8,8 +8,6 @@
 #include "sim.h"
 #include "stopwatch.h"
 
-
-
 void simulation::printAcceptance() const
 {
         if(nAccepts + nRejects > 0)
