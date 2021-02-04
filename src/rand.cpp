@@ -73,6 +73,21 @@ const matrix_complex smallSU2Matrix( std::mt19937_64& g )
   return su;
 }
 
+const matrix_complex smallHermitianMatrix( std::mt19937_64& g )
+{
+        double a,b,c;
+
+        matrix_complex herm;
+        a = HERM_STEP_MAX * uniformReal(g,-1.0,1.0);
+        b = HERM_STEP_MAX * uniformReal(g,-1.0,1.0);
+        c = HERM_STEP_MAX * uniformReal(g,-1.0,1.0);
+        herm(0,0) = complex<double>(c);
+        herm(1,1) = complex<double>(-c);
+        herm(0,1) = complex<double>(a,-b);
+        herm(1,0) = complex<double>(a,b);
+        return herm;
+}
+
 const double uniformReal(std::mt19937_64& g)
 {
         std::uniform_real_distribution<double> distribution(0.0,1.0);
