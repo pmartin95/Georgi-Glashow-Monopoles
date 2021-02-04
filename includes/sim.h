@@ -52,6 +52,10 @@ void evolveFieldMHMC(long unsigned int site_index, int dir);
 void evolveFieldMHMC(long unsigned int site_index);
 double actionDifference(long unsigned int site_index, int dir);
 double actionDifference(long unsigned int site_index);
+void acceptOrReject(long unsigned int site_index,int dir);
+void acceptOrReject(long unsigned int site_index);
+void sweepMHMC();
+void multiSweepMHMC(int Nsweeps);
 //Action functions
 double georgiGlashowLagrangianDensity(long unsigned int) const;
 double georgiGlashowLagrangianDensity(long unsigned int, const lattice& L_in) const;
