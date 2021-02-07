@@ -21,12 +21,13 @@ int main()
         for(int i=0; i<30; i++)
                 sim1.initializeHMC();
 
+
         std::cout << "Initialization complete.\n";
-        int temp_step = 2;
+        int temp_step = 10;
         double temp_hdiff = 0.0d;
         int i,j;
 
-        for(i=0; i<10; i++)
+        for(i=0; i<3; i++)
         {
                 N_Steps.push_back(temp_step);
                 sim1.setupSteps(temp_step);
@@ -36,7 +37,7 @@ int main()
                 std::cout << "step size: " << sim1.stepSize << std::endl;
                 std::cout << "On to the next one!" << std::endl;
                 H_diff_average.push_back(temp_hdiff/static_cast<double>(j));
-                temp_step *= 2;
+                temp_step *= 10;
 
         }
 
