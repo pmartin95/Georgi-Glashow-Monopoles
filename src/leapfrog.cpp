@@ -55,6 +55,7 @@ double simulation::runLeapfrogSimulation()
                 copyLatticeAndRefresh(Ltemp[0],L);
         else
                 copyLatticeAndRefresh(L,Ltemp[0]);
+        Ltemp[1] = L;
         #ifdef __CHECK_LATTICE__
         isLatticeConsistent(L);
         #endif
@@ -79,45 +80,55 @@ void simulation::leapfrogOneStep()
         int i;
 
 //Initial Step
-        #pragma omp parallel for
-        for(site_index=0; site_index < L.nsites; site_index++)
-                updateMomenta(site_index,stepSize/2.0, Ptemp[0],Ltemp[0], Ptemp[1]);
+        #pragma omp parallel private(i)
+        {
+
+                #pragma omp for
+                for(site_index=0; site_index < L.nsites; site_index++)
+                {
+                        updateMomenta(site_index,stepSize/2.0, Ptemp[0],Ltemp[0], Ptemp[1]);
+                }
 
 //Intermediate Steps
-        for(i = 0; i<steps-1; i++)
-        {
-                wholeStepEvolve(Ltemp[i%2],Ptemp[(i+1)%2],  Ltemp[(i+1)%2], Ptemp[i%2] );
-                if( i == steps-2)
-                        copyLatticePlattice(  Ltemp[(i+1)%2],Ptemp[i%2], Ltemp[i%2],Ptemp[(i+1)%2] );
-        }
+                for(i = 0; i<steps-1; i++)
+                {
+                        wholeStepEvolve(Ltemp[i%2],Ptemp[(i+1)%2],  Ltemp[(i+1)%2], Ptemp[i%2] );
+                        #pragma omp barrier
+                        #pragma omp single
+                        {
+                                if( i == steps-2)
+                                        copyLatticePlattice(  Ltemp[(i+1)%2],Ptemp[i%2], Ltemp[i%2],Ptemp[(i+1)%2] );
+                        }
+                }
 //Last step
-        #pragma omp parallel for
-        for(site_index=0; site_index < L.nsites; site_index++)
-                updateFields(site_index,stepSize,Ptemp[0], Ltemp[0], Ltemp[1]);
+                #pragma omp for
+                for(site_index=0; site_index < L.nsites; site_index++)
+                        updateFields(site_index,stepSize,Ptemp[0], Ltemp[0], Ltemp[1]);
 
-        #pragma omp parallel for
-        for(site_index=0; site_index < L.nsites; site_index++)
-                updateMomenta(site_index,stepSize/2.0, Ptemp[0],Ltemp[1],Ptemp[1]);
-
+                #pragma omp for
+                for(site_index=0; site_index < L.nsites; site_index++)
+                        updateMomenta(site_index,stepSize/2.0, Ptemp[0],Ltemp[1],Ptemp[1]);
+        }
         copyLatticePlattice(Ltemp[1],Ptemp[1],Ltemp[0],Ptemp[0]);
 
 }
 
 void simulation::wholeStepEvolve(lattice L_in, Plattice P_in, lattice L_out, Plattice P_out)
 {
-  #pragma parallel
+        #pragma omp for
+        for(long unsigned site_index=0; site_index < L.nsites; site_index++)
         {
-                #pragma omp for
-                for(long unsigned site_index=0; site_index < L.nsites; site_index++)
-                        updateFields(site_index,stepSize,P_in,L_in, L_out );
-
-                #pragma omp for
-                for(long unsigned site_index=0; site_index < L.nsites; site_index++)
-                        updateMomenta(site_index,stepSize, P_in,L_in,P_out);
+                //std::cout << "thread num " << omp_get_thread_num() << " is updating site " << site_index << std::endl;
+                updateFields(site_index,stepSize,P_in,L_in, L_out );
         }
 
-}
 
+        #pragma omp for
+        for(long unsigned site_index=0; site_index < L.nsites; site_index++)
+        {
+                updateMomenta(site_index,stepSize, P_in,L_in,P_out);
+        }
+}
 //This function should return true if the new config is to be accepted
 bool simulation::metropolisDecision()
 {
@@ -166,14 +177,13 @@ const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned
         }
 
         subtotal1.noalias() += complex<double>(0.0,1.0/(g*g)) * (  Ulink*(topStaple + bottomStaple)  - (topStaple + bottomStaple).adjoint()  * Ulink.adjoint()   );
-        subtotal1 = subtotal1 - subtotal1.trace()/2.0 * identityMatrix;
+        subtotal1 = subtotal1 - subtotal1.trace() * 0.5 * identityMatrix;
         temp1 = Ulink * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint();
-        //std::cout << "Link force, temp1: " << temp1 << std::endl;
+
         temp2 = matCall(L_in,4,site_index,jumpNone);
-        //std::cout << "Link force, temp2: " << temp1 << std::endl;
-        subtotal2.noalias() += (temp1*temp2 - temp2*temp1) * complex<double>(0.0,2.0);
-        //std::cout << "Subtotal1 trace: " << subtotal1.trace() << std::endl;
-        //std::cout << "Subtotal2 trace: " << subtotal2.trace() << std::endl;
+
+        subtotal2.noalias() += (temp1*temp2 - temp2.adjoint()*temp1.adjoint()) * complex<double>(0.0,0.5*dsv);
+
 
         return subtotal1 + subtotal2;// best so far
 }
@@ -196,10 +206,10 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
                 temp3 += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
         }
         temp1 = matCall(L_in,4,site_index,jumpNone);
-        temp1 = (2.0 * lambda *temp1*(temp1*temp1).trace() + (m2+8.0)*temp1  );
+        temp1 = (2.0 * lambda *temp1*(temp1*temp1).trace() + (m2+8.0*dsv)*temp1  );
 
         //std::cout << "Link force, temp1: " << temp1 << std::endl;
-        temp = (temp2 + temp3);
-        temp =temp1 - temp + temp.trace() / 2.0 * Iden;
+        temp = dsv*(temp2 + temp3);
+        temp =temp1 - temp + temp.trace() *0.5 * Iden;
         return temp;
 }
