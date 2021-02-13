@@ -20,9 +20,12 @@
 #define DEFAULT_STEPS 100
 #define DEFAULT_STEP_SIZE 1.0/DEFAULT_STEPS
 
-#define DEFAULT_LAMBDA  0.0 //0.1
-#define DEFAULT_M2 0.0  //-0.2
+#define FIRST_TERM_PARAM 1.0 //for turning on an off the first part of the action
+#define DEFAULT_LAMBDA  0.1
+#define DEFAULT_M2 -0.2
 #define DEFAULT_STARTING_G 0.4472135955 //1.318 //
+#define INV_G2_DEFAULT 1.0d/(DEFAULT_STARTING_G * DEFAULT_STARTING_G)
+
 #define matCall ((*this).*boundary_condition)
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
 
@@ -75,6 +78,7 @@ void setupBoundaryConditions();
 void setupBoundaryConditions( char boundaryType);
 void setupParams(double m2_in,double lambda_in, double g_in);
 void setupParams(double m2_in);
+void switchDSV();
 void setupSteps(int Nsteps);
 void resetMomenta();
 void resetAcceptanceCounter();
@@ -90,7 +94,7 @@ void printDerivatives(long unsigned int site_index) const;
 int steps;
 int nAccepts, nRejects;
 double stepSize;
-double m2, lambda, g;
+double m2, lambda, g,dsv;
 const matrix_complex plaquette(long unsigned site_index, int dir1, int dir2) const;
 const matrix_complex plaquette(const lattice& L_in,long unsigned site_index, int dir1, int dir2) const;
 const matrix_complex mixedGaugeHiggsTerm(const lattice& L_in, long unsigned site_index, int dir) const;
