@@ -18,6 +18,7 @@ simulation::simulation()
         m2 = DEFAULT_M2;
         lambda = DEFAULT_LAMBDA;
         g = DEFAULT_STARTING_G;
+        dsv = FIRST_TERM_PARAM;
         std::mt19937_64 randTemp(seedGen());
         randomGenerator = randTemp;
         L = lattice(randomGenerator);
@@ -88,6 +89,7 @@ simulation::simulation(const lattice& L_in)
         m2 = DEFAULT_M2;
         lambda = DEFAULT_LAMBDA;
         g = DEFAULT_STARTING_G;
+        dsv = FIRST_TERM_PARAM;
         L = L_in;
         Ltemp[0] = L;
         Ltemp[1] = Ltemp[0];
@@ -147,7 +149,8 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
                 jumpTemp[dir]++;
                 phiDerivativePart -= (mainPhi * mainLink[dir] * matCall(L_in,dir,site_index,jumpTemp) * mainLink[dir].adjoint() ).trace().real();
         }
-        phiDerivativePart *= 2.0;
+        phiDerivativePart *= 2.0 * dsv; //dsv let's me turn off this phi derivative part on and off
+
         //plaquette
         FORALLDIRLESSTHAN(i,j)
         {
@@ -158,7 +161,7 @@ double simulation::georgiGlashowLagrangianDensity(long unsigned int site_index, 
         plaquettePart *= 2.0/(g*g);
         //other phi terms
         miscPhiPart = m2 * phiSquareTrace + lambda * phiSquareTrace *phiSquareTrace;
-        phiDerivativePart = 0.0; /////
+
 
         return phiDerivativePart + plaquettePart + miscPhiPart;
 }
@@ -350,6 +353,16 @@ void simulation::setupParams(double m2_in)
 {
         m2 = m2_in;
 }
+
+void simulation::switchDSV()
+{
+        if(dsv < 1.0)
+                dsv = 1.0;
+        else
+                dsv = 0.0;
+}
+
+
 void simulation::setupSteps(int Nsteps)
 {
         steps = Nsteps;
@@ -441,13 +454,13 @@ const matrix_complex simulation::plaquette(const lattice& L_in,long unsigned sit
 //This function computes the mixed term in the georgi glashow lagrangian
 const matrix_complex simulation::mixedGaugeHiggsTerm(const lattice& L_in, long unsigned site_index, int dir) const
 {
-  matrix_complex u1, u2, u3, u4;
-  int jump[4] ={0},jumpNone[4] = {0};
-  jump[dir]++;
-  u1 = matCall(L_in,4, site_index,jumpNone);
-  u2 = matCall(L_in,dir, site_index,jumpNone);
-  u3 = matCall(L_in,4, site_index,jump);
-  u4 = matCall(L_in,dir, site_index,jumpNone).adjoint();
+        matrix_complex u1, u2, u3, u4;
+        int jump[4] ={0},jumpNone[4] = {0};
+        jump[dir]++;
+        u1 = matCall(L_in,4, site_index,jumpNone);
+        u2 = matCall(L_in,dir, site_index,jumpNone);
+        u3 = matCall(L_in,4, site_index,jump);
+        u4 = matCall(L_in,dir, site_index,jumpNone).adjoint();
 
-  return u1*u2*u3*u4;
+        return u1*u2*u3*u4;
 }
