@@ -1,11 +1,11 @@
 CC=g++
-OBJECTS=main.o lattice.o rand.o sim.o leapfrog.o utilities.o metropolis_hastingsMC.o stopwatch.o
+OBJECTS=main.o lattice.o rand.o sim.o boundary_conditions.o leapfrog.o utilities.o metropolis_hastingsMC.o stopwatch.o
 INC= -I ./../eigen -I ./../includes -lm -g -fopenmp -O3
 
 main.exe: $(OBJECTS)
 	$(CC) $(INC) -o main.exe $(OBJECTS)
 
-%.o:%.cpp
+%.o : %.cpp
 	$(CC) $(INC) -c -o $@ $<
 
 clean:
