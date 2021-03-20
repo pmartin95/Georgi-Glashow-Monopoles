@@ -6,6 +6,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <omp.h>
 #include "sim.h"
+#include <vector>
 #include "stopwatch.h"
 
 void simulation::printAcceptance() const
@@ -108,4 +109,9 @@ bool isLatticeConsistent(const lattice &L_in )
 
         return true;
 
+}
+
+double averageDoubleVector(vector<double> &V )
+{
+        return 1.0 * std::accumulate(V.begin(),V.end(),0.0d) /V.size();
 }
