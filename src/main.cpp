@@ -15,48 +15,55 @@
 
 int main()
 {
-        std::vector<unsigned int> N_Steps;
-        std::vector<double> H_diff_average;
+        //g schedule
+
+        //std::vector<double> g_schedule{1.15,1.3,1.45,1.6,1.75,1.9,2,2.15,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3};
+        std::vector<double> g_schedule;
+        for(double z = 0.05; z<.75; z+=0.05)
+                g_schedule.push_back(1.0/sqrt(z));
+        //Hybrid Monte Carlo Simulation
         simulation sim1;
-        for(int i=0; i<30; i++)
-                sim1.initializeHMC();
-
-
-        std::cout << "Initialization complete.\n";
-        int temp_step = 2;
-        double temp_hdiff;
-        int i,j;
-
-        for(i=0; i<10; i++)
+        sim1.switchDSV();
+        vector<double> sim1_average_plaquettes;
+        for(double g_in : g_schedule)
         {
-                temp_hdiff = 0.0d;
-                N_Steps.push_back(temp_step);
-                sim1.setupSteps(temp_step);
-                std::cout << "Performing " << j << " runs with " << temp_step << " intervals\n";
-                for(j=0; j<30; j++)
+                vector<double> sim1_plaquettes;
+                sim1.setupParams(sim1.m2,sim1.lambda, g_in);
+                for(int i=0; i<30; i++)
+                        sim1.initializeHMC();
+                for (int i = 0; i < 30; i++)
                 {
-                        if(j%5==0)
-                                std::cout << temp_step << " steps per sweep. " << j << "/29 runs.\n";
-                        temp_hdiff += abs( sim1.runLeapfrogSimulation() );
+                        sim1.runLeapfrogSimulation();
+                        sim1_plaquettes.push_back(sim1.averagePlaquettes());
                 }
-                std::cout << "Average Phi: " << sim1.averagePhi()<<  '\n';
-                std::cout << "Average Phi Squared: " << sim1.averagePhi2()<<  '\n';
-                std::cout << "Average plaquette: " << sim1.averagePlaquettes()  <<  '\n';
-                sim1.printAcceptance();
-                sim1.resetAcceptanceCounter();
-
-                std::cout << "step size: " << sim1.stepSize << std::endl;
-                std::cout << "On to the next one!" << std::endl;
-                H_diff_average.push_back(temp_hdiff/30.0);
-                temp_step *= 2;
+                sim1_average_plaquettes.push_back(averageDoubleVector(sim1_plaquettes));
+        }
+        //Metropolis Hastings Simulation
+        simulation sim2;
+        sim2.switchDSV();
+        vector<double> sim2_average_plaquettes;
+        for(double g_in : g_schedule)
+        {
+                vector<double> sim2_plaquettes;
+                sim2.setupParams(sim2.m2,sim2.lambda, g_in);
+                for (int i = 0; i < 30; i++)
+                {
+                        sim2.multiSweepMHMC(10);
+                        sim2_plaquettes.push_back(sim2.averagePlaquettes());
+                }
+                sim2_average_plaquettes.push_back(averageDoubleVector(sim2_plaquettes));
+        }
+        ;
+        std::cout << "ln(g^2)   HMC    MHMC\n";
+        for(int i=0; i<sim1_average_plaquettes.size(); i++)
+        {
+                double x,y, lng2;
+                lng2 = log( g_schedule[i]   );
+                x= -log(sim1_average_plaquettes[i]);
+                y= -log(sim2_average_plaquettes[i]);
+                std::cout << lng2 << " " << x << " " << y << std::endl;
 
         }
 
-
-        std::ofstream datafile;
-        datafile.open("Hdiffdata.txt");
-        for(i=0; i<10; i++)
-                datafile << N_Steps[i] << " " << H_diff_average[i] << std::endl;
-        datafile.close();
         return 0;
 }
