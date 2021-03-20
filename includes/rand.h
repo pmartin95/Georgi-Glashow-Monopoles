@@ -4,7 +4,7 @@
 #ifndef _RAND_
 #define _RAND_
 
-#define EPSILON_MAX 0.5
+#define EPSILON_MAX 0.05
 #define HERM_STEP_MAX 0.05
 
 unsigned seedGen();
