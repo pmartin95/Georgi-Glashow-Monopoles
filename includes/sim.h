@@ -4,13 +4,13 @@
 
 #define __SIMULATION__
 #define __GAUGE_EVOLUTION__
-#define __HIGGS_EVOLUTION__
+//#define __HIGGS_EVOLUTION__
 
-#define __CHECK_NAN__
-#define __CHECK_SU2__
-#define __CHECK_TRACELESS__
-#define __CHECK_HERMITIAN__
-#define __CHECK_LATTICE__
+// #define __CHECK_NAN__
+// #define __CHECK_SU2__
+// #define __CHECK_TRACELESS__
+// #define __CHECK_HERMITIAN__
+// #define __CHECK_LATTICE__
 
 #define CLOSETOZERO 1.0E-6
 
@@ -24,7 +24,7 @@
 #define DEFAULT_LAMBDA  0.1
 #define DEFAULT_M2 -0.2
 #define DEFAULT_STARTING_G 0.4472135955 //1.318 //
-#define INV_G2_DEFAULT 1.0d/(DEFAULT_STARTING_G * DEFAULT_STARTING_G)
+
 
 #define matCall ((*this).*boundary_condition)
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
@@ -73,6 +73,7 @@ const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int site_ind
 double averagePlaquettes() const;   //
 const matrix_complex averagePhi() const;
 const matrix_complex averagePhi2() const;
+double CreutzRatio() const;
 //Setup and Reset functions
 void setupBoundaryConditions();
 void setupBoundaryConditions( char boundaryType);
@@ -83,9 +84,19 @@ void setupSteps(int Nsteps);
 void resetMomenta();
 void resetAcceptanceCounter();
 //Boundary Conditions
+const matrix_complex directMatCall(const lattice& L_in,unsigned long int site_index,int matrix_num) const;
+int shiftToLattice(const lattice& L_in,int coordinate, int dir) const;
+int incrementCoordinate(const lattice& L_in,int coordinate,int dir) const;
 const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]) const;
-//const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
-//const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]);
+const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]) const;
+const matrix_complex cTwist(const matrix_complex& mat_A, int matrix_num) const;
+const matrix_complex cTwistGaugeField(const matrix_complex& mat_A) const;
+const matrix_complex cTwistHiggsField(const matrix_complex& mat_A) const;
+const matrix_complex twistedBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]) const;
+const matrix_complex TwistField(const matrix_complex& mat_A,int matrix_number,int dir) const;
+const matrix_complex xTwist(const matrix_complex& mat_A,int matrix_number) const;
+const matrix_complex yTwist(const matrix_complex& mat_A,int matrix_number) const;
+const matrix_complex zTwist(const matrix_complex& mat_A,int matrix_number) const;
 void AcceptanceCounter(bool updateStatus);
 void printAcceptance() const;
 void printSite(long unsigned int site_index) const;
@@ -109,4 +120,5 @@ bool isSU2(const matrix_complex & A);
 bool isTraceless(const matrix_complex & A);
 bool isHermitian(const matrix_complex &A);
 bool isLatticeConsistent(const lattice &L_in );
+double averageDoubleVector(vector<double> &V );
 #endif
