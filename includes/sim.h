@@ -15,6 +15,7 @@
 #define CLOSETOZERO 1.0E-6
 
 #include <random>
+#include <string>
 #include "lattice.h"
 #include "rand.h"
 #define DEFAULT_STEPS 100
@@ -28,6 +29,22 @@
 
 #define matCall ((*this).*boundary_condition)
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
+
+typedef struct data_point
+{
+        double g_value;
+        double m2_value;
+        double lambda_value;
+        double average_plaquette_value;
+        double average_phi2_value;
+} data_point_t;
+
+typedef struct schedule_element
+{
+        double g_value;
+        double m2_value;
+        double lambda_value;
+} schedule_element_t;
 
 class simulation {
 public:
@@ -101,6 +118,15 @@ void AcceptanceCounter(bool updateStatus);
 void printAcceptance() const;
 void printSite(long unsigned int site_index) const;
 void printDerivatives(long unsigned int site_index) const;
+//Data Collection and Scheduling Routines
+void appendDataPoint();
+void restDataPoints();
+void printDataFile(const std::string& filename) const;
+void inputScheduleParameters(const std::string& filename);
+void generateScheduleFile(const std::string& filename,const std::vector<double>& gs,const std::vector<double>& m2s,const std::vector<double>& lambdas);
+void loadScheduleValues(int i);
+void runHMCSimulationSchedule(int init_iter,int iter, int iter_measure);
+void runMHMCSimulationSchedule(int iter, int iter_measure);
 //private:
 int steps;
 int nAccepts, nRejects;
@@ -113,6 +139,9 @@ lattice L, Ltemp[2];
 Plattice P, Ptemp[2];
 std::mt19937_64 randomGenerator;
 simMatrixReturn boundary_condition;
+std::vector<data_point_t> data;
+std::vector<schedule_element_t> schedule;
+
 };
 
 matrix_complex CayleyHamiltonExp(const matrix_complex & A);
@@ -120,5 +149,5 @@ bool isSU2(const matrix_complex & A);
 bool isTraceless(const matrix_complex & A);
 bool isHermitian(const matrix_complex &A);
 bool isLatticeConsistent(const lattice &L_in );
-double averageDoubleVector(vector<double> &V );
+double averageDoubleVector(std::vector<double> &V );
 #endif
