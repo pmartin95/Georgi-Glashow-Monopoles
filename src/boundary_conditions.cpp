@@ -54,18 +54,20 @@ int simulation::shiftToLattice(const lattice& L_in,int coordinate, int dir) cons
         }
         return (temp_coordinate)%(L_in.ns[dir]);
 }
+
 int simulation::incrementCoordinate(const lattice& L_in,int coordinate,int dir) const
 {
-        if(coordinate <  0)
-                return coordinate + L_in.ns[dir];
-        else if(coordinate > L_in.ns[dir] )
+        if(coordinate > L_in.ns[dir] )
                 return coordinate - L_in.ns[dir];
+        else if(coordinate <  0)
+                return coordinate + L_in.ns[dir];
         else
         {
                 std::cout << "ERROR: Indices not corresponding" << std::endl;
                 std::exit(1);
         }
 }
+
 const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index,const int jump[4]) const
 {
         long unsigned int new_index;
