@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <iomanip>
 #include <sys/time.h>
 #include <string>
 #include <iostream>
@@ -16,9 +17,17 @@
 
 int main()
 {
-        std::string filename = "testsched.txt";
-        std::vector<double> g(10),m2(10),lambda(10);
+
+        std::string filename = "annealingSchedule.txt";
         simulation sim1;
-        sim1.generateScheduleFile(filename,g,m2,lambda);
+        sim1.switchDSV();
+        sim1.inputScheduleParameters(filename);
+        void runHMCSimulationSchedule(int init_iter,int iter, int iter_measure);
+        sim1.runHMCSimulationSchedule(30,600,20);
+        sim1.printDataFile("HMCsim1.txt");
+        // sim1.resetDataPoints();
+        // std::cout << "Finished running hybrid Monte Carlo.\n";
+        // sim1.runMHMCSimulationSchedule(2000,100);
+        // sim1.printDataFile("MHMCsim1.txt");
         return 0;
 }
