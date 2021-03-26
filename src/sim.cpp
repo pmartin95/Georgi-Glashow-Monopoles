@@ -18,6 +18,7 @@ simulation::simulation()
         m2 = DEFAULT_M2;
         lambda = DEFAULT_LAMBDA;
         g = DEFAULT_STARTING_G;
+        invg = 1.0/g;
         dsv = FIRST_TERM_PARAM;
         std::mt19937_64 randTemp(seedGen());
         randomGenerator = randTemp;
@@ -39,6 +40,7 @@ simulation::simulation(const simulation& sim)
         m2 = sim.m2;
         lambda = sim.lambda;
         g = sim.g;
+        invg = 1.0/g;
 
         randomGenerator = sim.randomGenerator;
 
@@ -98,6 +100,7 @@ void simulation::setupParams(double m2_in,double lambda_in, double g_in)
         m2 = m2_in;
         lambda = lambda_in;
         g = g_in;
+        invg = 1.0/g;
 }
 
 void simulation::setupParams(double m2_in)
