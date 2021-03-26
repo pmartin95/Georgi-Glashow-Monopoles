@@ -5,6 +5,7 @@
 #define __SIMULATION__
 #define __GAUGE_EVOLUTION__
 //#define __HIGGS_EVOLUTION__
+#define __HIGGS_GAUGE_MIXED_TERM__
 
 // #define __CHECK_NAN__
 // #define __CHECK_SU2__
@@ -18,6 +19,7 @@
 #include <string>
 #include "lattice.h"
 #include "rand.h"
+#include <iomanip>
 #define DEFAULT_STEPS 100
 #define DEFAULT_STEP_SIZE 1.0/DEFAULT_STEPS
 
@@ -28,6 +30,9 @@
 
 
 #define matCall ((*this).*boundary_condition)
+
+typedef double (*oneVarDoubleFunc) (double);
+
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
 
 typedef struct data_point
@@ -85,7 +90,12 @@ double kineticTerm(const Plattice& P_in) const;
 double georgiGlashowHamiltonian(const lattice& L_in, const Plattice& P_in) const;
 double Hamiltonian() const;
 const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
+const matrix_complex georgiGlashowActionPureGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
+const matrix_complex georgiGlashowActionMixedGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
 const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const;
+const matrix_complex georgiGlashowActionPhiKineticPart(long unsigned int site_index, const lattice& L_in) const;
+const matrix_complex georgiGlashowActionPhiMPart(long unsigned int site_index, const lattice& L_in) const;
+const matrix_complex georgiGlashowActionLambdaPart(long unsigned int site_index, const lattice& L_in) const;
 //Observables
 double averagePlaquettes() const;   //
 const matrix_complex averagePhi() const;
@@ -120,9 +130,10 @@ void printSite(long unsigned int site_index) const;
 void printDerivatives(long unsigned int site_index) const;
 //Data Collection and Scheduling Routines
 void appendDataPoint();
-void restDataPoints();
+void resetDataPoints();
 void printDataFile(const std::string& filename) const;
 void inputScheduleParameters(const std::string& filename);
+void reverseSchedule();
 void generateScheduleFile(const std::string& filename,const std::vector<double>& gs,const std::vector<double>& m2s,const std::vector<double>& lambdas);
 void loadScheduleValues(int i);
 void runHMCSimulationSchedule(int init_iter,int iter, int iter_measure);
@@ -131,7 +142,7 @@ void runMHMCSimulationSchedule(int iter, int iter_measure);
 int steps;
 int nAccepts, nRejects;
 double stepSize;
-double m2, lambda, g,dsv;
+double m2, lambda, g,invg,dsv;
 const matrix_complex plaquette(long unsigned site_index, int dir1, int dir2) const;
 const matrix_complex plaquette(const lattice& L_in,long unsigned site_index, int dir1, int dir2) const;
 const matrix_complex mixedGaugeHiggsTerm(const lattice& L_in, long unsigned site_index, int dir) const;
@@ -144,10 +155,14 @@ std::vector<schedule_element_t> schedule;
 
 };
 
+
 matrix_complex CayleyHamiltonExp(const matrix_complex & A);
 bool isSU2(const matrix_complex & A);
 bool isTraceless(const matrix_complex & A);
 bool isHermitian(const matrix_complex &A);
 bool isLatticeConsistent(const lattice &L_in );
+vector<double> createDistributionVector(double a, double b, int N);
+vector<double> createDistributionVector(double a, double b, int N, oneVarDoubleFunc func);
+double invSquareRoot(double x);
 double averageDoubleVector(std::vector<double> &V );
 #endif
