@@ -115,3 +115,26 @@ double averageDoubleVector(vector<double> &V )
 {
         return 1.0 * std::accumulate(V.begin(),V.end(),0.0d) /V.size();
 }
+
+//creates a uniform distribution of N points between a and b
+vector<double> createDistributionVector(double a, double b, int N)
+{
+        double increment = (b-a)/(static_cast<double>(N));
+        vector<double> temp;
+        for(int i=0; i < N; i++)
+                temp.push_back(a + static_cast<double>(i) * increment);
+        return temp;
+}
+
+vector<double> createDistributionVector(double a, double b, int N, oneVarDoubleFunc func)
+{
+        double increment = (b-a)/(static_cast<double>(N));
+        vector<double> temp;
+        for(int i=0; i < N; i++)
+                temp.push_back(func(a + static_cast<double>(i) * increment));
+        return temp;
+}
+double invSquareRoot(double x)
+{
+        return 1.0 /sqrt(x);
+}
