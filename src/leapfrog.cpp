@@ -148,68 +148,113 @@ bool simulation::metropolisDecision()
 
 const matrix_complex simulation::georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const //
 {
+
+        matrix_complex temp;
+        temp.noalias() = georgiGlashowActionPureGaugeDerivative(site_index,dir,L_in);
+  #ifdef __HIGGS_GAUGE_MIXED_TERM__
+        temp.noalias() += georgiGlashowActionMixedGaugeDerivative(site_index,dir,L_in);
+  #endif
+
+        return temp;
+}
+
+const matrix_complex simulation::georgiGlashowActionPureGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const
+{
         matrix_complex topStaple, bottomStaple;
-        matrix_complex temp1,temp2;
         matrix_complex Ulink;
-        matrix_complex subtotal1,subtotal2;
+        matrix_complex subtotal,total;
         matrix_complex identityMatrix;
-
-        int jump1[4] = {0};
-        int jumpNone[4] = {0,0,0,0};
         int temp_dir;
+        int jump0[4] = {0};
         identityMatrix.setIdentity();
-
-        Ulink = matCall(L_in,dir,site_index,jumpNone);
-//  std::cout << "Ulink: " << Ulink << std::endl;
-        topStaple.setZero(); bottomStaple.setZero();
-        temp1.setZero(); temp2.setZero();
-        subtotal1.setZero(); subtotal2.setZero();
-        jump1[dir]++;
-
+        topStaple.setZero();
+        bottomStaple.setZero();
+        Ulink = matCall(L_in, site_index,dir,jump0);
         FORALLDIRBUT(temp_dir,dir)
         {
-                int jump2[4] = {0}, jump3[4] = {0}, jump4[4] = {0};
-                jump2[temp_dir]++; jump3[temp_dir]--;
-                jump4[dir]++; jump4[temp_dir]--;
 
-                topStaple.noalias() += matCall(L_in, site_index,temp_dir,jump1) * matCall(L_in, site_index,dir,jump2).adjoint() * matCall(L_in, site_index,temp_dir,jumpNone).adjoint();
-                bottomStaple.noalias() += matCall(L_in, site_index,temp_dir,jump4).adjoint() * matCall(L_in, site_index,dir,jump3).adjoint() * matCall(L_in, site_index,temp_dir,jump3);
+                int jump1[4] = {0};
+                int jump2[4] = {0};
+                int jump3[4] = {0};
+                int jump4[4] = {0};
+
+                jump1[dir]++;
+                jump2[temp_dir]++;
+                jump3[dir]++;
+                jump3[temp_dir]--;
+                jump4[temp_dir]--;
+
+                topStaple.noalias()+=matCall(L_in, site_index,temp_dir,jump1) * matCall(L_in, site_index,dir,jump2).adjoint() * matCall(L_in, site_index,temp_dir,jump0).adjoint();
+                bottomStaple.noalias()+= matCall(L_in, site_index,temp_dir,jump3).adjoint() * matCall(L_in, site_index,dir,jump4).adjoint() * matCall(L_in, site_index,temp_dir,jump4);
+
         }
-
-        subtotal1.noalias() += complex<double>(0.0,1.0/(g*g)) * (  Ulink*(topStaple + bottomStaple)  - (topStaple + bottomStaple).adjoint()  * Ulink.adjoint()   );
-        subtotal1 = subtotal1 - subtotal1.trace() * 0.5 * identityMatrix;
-        temp1 = Ulink * matCall(L_in,4,site_index,jump1) * matCall(L_in,dir,site_index,jumpNone).adjoint();
-
-        temp2 = matCall(L_in,4,site_index,jumpNone);
-
-        subtotal2.noalias() += (temp1*temp2 - temp2.adjoint()*temp1.adjoint()) * complex<double>(0.0,0.5*dsv);
+        subtotal.noalias() = Ulink * (topStaple + bottomStaple);
+        total.noalias() =  complex<double>(0.0,0.5*invg*invg) *(  subtotal - subtotal.adjoint());
+        //Just to make sure it's really traceless. In theory, total should already be traceless
+        return total - total.trace() *0.5 *identityMatrix;
+}
 
 
-        return subtotal1 + subtotal2;// best so far
+
+
+const matrix_complex simulation::georgiGlashowActionMixedGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const
+{
+        int jump0[4] = {0};
+        int jump1[4] = {0};
+        jump1[dir]++;
+        matrix_complex Ulink, temp1;
+        matrix_complex identityMatrix;
+        identityMatrix.setIdentity();
+
+        Ulink = matCall(L_in, site_index,dir,jump0);
+        temp1.noalias() = Ulink * matCall(L_in, site_index,4,jump1) * Ulink.adjoint()*matCall(L_in, site_index,4,jump0);
+        temp2.noalias() = complex<double>(0.0,0.5) (temp1 - temp1.adjoint());
+        //Just to make sure it's really traceless. In theory, total should already be traceless
+        return temp2 - 0.5*identityMatrix * temp2.trace();
 }
 
 const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const
 {
-        matrix_complex temp1, temp2, temp3,Iden,temp;
-        int temp_dir;
-        int jumpNone[4] = {0,0,0,0};
-        double traced_part;
-        temp2.setZero();
-        temp3.setZero();
-        Iden.setIdentity();
-
-        FORALLDIR(temp_dir)
-        {
-                int jump1[4] = {0}, jump2[4] ={0};
-                jump1[temp_dir]++; jump2[temp_dir]--;
-                temp2 += matCall(L_in,temp_dir,site_index,jumpNone) * matCall(L_in,4,site_index,jump1) * matCall(L_in,temp_dir,site_index,jumpNone).adjoint();
-                temp3 += matCall(L_in,temp_dir,site_index,jump2).adjoint() *  matCall(L_in,4,site_index,jump2)* matCall(L_in,temp_dir,site_index,jump2);
-        }
-        temp1 = matCall(L_in,4,site_index,jumpNone);
-        temp1 = (2.0 * lambda *temp1*(temp1*temp1).trace() + (m2+8.0*dsv)*temp1  );
-
-        //std::cout << "Link force, temp1: " << temp1 << std::endl;
-        temp = dsv*(temp2 + temp3);
-        temp =temp1 - temp + temp.trace() *0.5 * Iden;
+        matrix_complex temp;
+        temp.noalias() = georgiGlashowActionPhiMPart(site_index,L_in) + georgiGlashowActionLambdaPart(site_index,L_in);
+  #ifdef __HIGGS_GAUGE_MIXED_TERM__
+        temp.noalias() += georgiGlashowActionPhiKineticPart(site_index,L_in)
+  #endif
         return temp;
+}
+
+const matrix_complex simulation::georgiGlashowActionPhiKineticPart(long unsigned int site_index, const lattice& L_in) const
+{
+        matrix_complex first, second, U1,U2, phi,temp,Iden;
+        int dir;
+        int jump0[4] = {0};
+        Iden.setIdentity();
+        phi = matCall(L_in,4,site_index,jump0);
+        FORALLDIR(dir)
+        {
+                int jump1[4] = {0};
+                int jump2[4] = {0};
+                jump1[dir]++;
+                jump2[dir]--;
+                U1 = matCall(L_in,dir,site_index,jump0);
+                U2 = matCall(L_in,dir,site_index,jump2);
+                first.noalias() += U1 * matCall(L_in,4,site_index,jump1) * U1.adjoint();
+                second.noalias() += U2.adjoint() * matCall(L_in,4,site_index,jump2) * U2;
+
+        }
+        temp =  8.0 * phi - (first + second);
+        return temp - temp.trace() * 0.5 * Iden;
+}
+
+const matrix_complex simulation::georgiGlashowActionPhiMPart(long unsigned int site_index, const lattice& L_in) const
+{
+        int jump0[4] = {0};
+        return m2 * matCall(L_in,4,site_index,jump0);
+}
+
+const matrix_complex simulation::georgiGlashowActionLambdaPart(long unsigned int site_index, const lattice& L_in) const
+{
+        int jump0[4] = {0};
+        phi =  matCall(L_in,4,site_index,jump0);
+        return 2.0 * lambda * phi *(phi*phi).trace();
 }
