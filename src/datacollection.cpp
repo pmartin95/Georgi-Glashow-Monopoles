@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <algorithm>
 #include <complex>
 #include <vector>
@@ -23,23 +24,25 @@ void simulation::appendDataPoint()
         data.push_back(temp);
 }
 
-void simulation::restDataPoints()
+void simulation::resetDataPoints()
 {
         data.clear();
 }
 
+
 void simulation::printDataFile(const std::string& filename) const
 {
+        int width = 20;
         std::ofstream datafile;
         datafile.open(filename,std::ios::out);
         datafile << "#g m^2 lambda average_plaquette average_phi^2\n";
         for(int i=0; i<data.size(); i++)
         {
-                datafile << data[i].g_value;
-                datafile << data[i].m2_value;
-                datafile << data[i].lambda_value;
-                datafile << data[i].average_plaquette_value;
-                datafile << data[i].average_phi2_value;
+                datafile << std::setw(width) << data[i].g_value;
+                datafile << std::setw(width) << data[i].m2_value;
+                datafile << std::setw(width) << data[i].lambda_value;
+                datafile << std::setw(width) << data[i].average_plaquette_value;
+                datafile << std::setw(width) << data[i].average_phi2_value;
                 datafile << std::endl;
         }
         datafile.close();
@@ -56,6 +59,7 @@ void simulation::inputScheduleParameters(const std::string& filename)
                 schedule.push_back(temp_sched);
         }
 }
+
 
 void simulation::generateScheduleFile(const std::string& filename,const std::vector<double>& gs,const std::vector<double>& m2s,const std::vector<double>& lambdas)
 {
@@ -94,7 +98,8 @@ void simulation::runHMCSimulationSchedule(int init_iter,int iter, int iter_measu
 
 void simulation::runMHMCSimulationSchedule(int iter, int iter_measure)
 {
-        int num_iter = iter%iter_measure;
+        int num_iter = iter/iter_measure;
+        std::cout << "num_iter= " << num_iter << std::endl;
         for(int sched_index=0; sched_index < schedule.size(); sched_index++ )
         {
                 loadScheduleValues(sched_index);
