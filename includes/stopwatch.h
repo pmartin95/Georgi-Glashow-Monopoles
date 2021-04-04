@@ -5,6 +5,7 @@ public:
 void stopwatchStart();
 double stopwatchReadSeconds();
 private:
+
 struct timeval myStartTime;
 };
 #endif
