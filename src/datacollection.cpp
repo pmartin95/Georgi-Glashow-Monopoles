@@ -60,6 +60,13 @@ void simulation::inputScheduleParameters(const std::string& filename)
         }
 }
 
+void simulation::reverseSchedule()
+{
+        vector<schedule_element_t> temp_sched(schedule.size());
+        for(int i=0; i < schedule.size(); i++)
+                temp_sched[i] = schedule[schedule.size()-i-1];
+        schedule = temp_sched;
+}
 
 void simulation::generateScheduleFile(const std::string& filename,const std::vector<double>& gs,const std::vector<double>& m2s,const std::vector<double>& lambdas)
 {
@@ -85,10 +92,14 @@ void simulation::runHMCSimulationSchedule(int init_iter,int iter, int iter_measu
         for(int sched_index=0; sched_index < schedule.size(); sched_index++ )
         {
                 loadScheduleValues(sched_index);
+                std::cout << "Running HMC sim " << sched_index+1 << "/" << schedule.size() <<std::endl;
                 for(int init_index=0; init_index<init_iter; init_index++)
                         initializeHMC();
+                std::cout << "Lattice initalized.\n";
                 for (int iter_index = 0; iter_index < iter; iter_index++)
                 {
+                        std::cout << "Running leapfrog " << iter_index+1 << "/" << iter << std::endl
+                                  << " in segment " << sched_index+1 << "/" << schedule.size() <<std::endl;
                         runLeapfrogSimulation();
                         if(iter_index%iter_measure == 0)
                                 appendDataPoint();
@@ -103,6 +114,7 @@ void simulation::runMHMCSimulationSchedule(int iter, int iter_measure)
         for(int sched_index=0; sched_index < schedule.size(); sched_index++ )
         {
                 loadScheduleValues(sched_index);
+                std::cout << "Running MHMC sim " << sched_index+1 << "/" << schedule.size() <<std::endl;
                 for(int iter_index = 0; iter_index < num_iter; iter_index++)
                 {
                         multiSweepMHMC(iter_measure);
