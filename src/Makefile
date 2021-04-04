@@ -1,5 +1,7 @@
 CC=g++
-OBJECTS=main.o lattice.o rand.o sim.o georgiglashow.o observables.o datacollection.o boundary_conditions.o leapfrog.o utilities.o metropolis_hastingsMC.o stopwatch.o 
+SIM_OBJECTS=sim.o georgiglashow.o observables.o datacollection.o boundary_conditions.o leapfrog.o utilities.o metropolis_hastingsMC.o statistics.o
+LATTICE_OBJECTS=lattice.o plattice.o lattice_sites.o plattice_sites.o
+OBJECTS=main.o $(LATTICE_OBJECTS) rand.o $(SIM_OBJECTS) stopwatch.o
 INC= -I ./../eigen -I ./../includes -lm -g -fopenmp -O3
 
 main.exe: $(OBJECTS)
