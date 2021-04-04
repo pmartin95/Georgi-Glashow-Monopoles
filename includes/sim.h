@@ -5,7 +5,7 @@
 #define __SIMULATION__
 #define __GAUGE_EVOLUTION__
 //#define __HIGGS_EVOLUTION__
-#define __HIGGS_GAUGE_MIXED_TERM__
+//#define __HIGGS_GAUGE_MIXED_TERM__
 
 // #define __CHECK_NAN__
 // #define __CHECK_SU2__
@@ -20,7 +20,7 @@
 #include "lattice.h"
 #include "rand.h"
 #include <iomanip>
-#define DEFAULT_STEPS 100
+#define DEFAULT_STEPS 10
 #define DEFAULT_STEP_SIZE 1.0/DEFAULT_STEPS
 
 #define FIRST_TERM_PARAM 1.0 //for turning on an off the first part of the action
