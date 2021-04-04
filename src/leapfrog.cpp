@@ -43,6 +43,7 @@ void simulation::initializeHMC()
         P = Ptemp[0];
         Ptemp[1] = Ptemp[0];
         Ltemp[1] = Ltemp[0];
+        resetMomenta();
 }
 
 double simulation::runLeapfrogSimulation()
@@ -202,13 +203,13 @@ const matrix_complex simulation::georgiGlashowActionMixedGaugeDerivative(long un
         int jump0[4] = {0};
         int jump1[4] = {0};
         jump1[dir]++;
-        matrix_complex Ulink, temp1;
+        matrix_complex Ulink, temp1, temp2;
         matrix_complex identityMatrix;
         identityMatrix.setIdentity();
 
         Ulink = matCall(L_in, site_index,dir,jump0);
         temp1.noalias() = Ulink * matCall(L_in, site_index,4,jump1) * Ulink.adjoint()*matCall(L_in, site_index,4,jump0);
-        temp2.noalias() = complex<double>(0.0,0.5) (temp1 - temp1.adjoint());
+        temp2.noalias() = complex<double>(0.0,0.5) * (temp1 - temp1.adjoint());
         //Just to make sure it's really traceless. In theory, total should already be traceless
         return temp2 - 0.5*identityMatrix * temp2.trace();
 }
@@ -218,7 +219,7 @@ const matrix_complex simulation::georgiGlashowActionPhiDerivative(long unsigned 
         matrix_complex temp;
         temp.noalias() = georgiGlashowActionPhiMPart(site_index,L_in) + georgiGlashowActionLambdaPart(site_index,L_in);
   #ifdef __HIGGS_GAUGE_MIXED_TERM__
-        temp.noalias() += georgiGlashowActionPhiKineticPart(site_index,L_in)
+        temp.noalias() += georgiGlashowActionPhiKineticPart(site_index,L_in);
   #endif
         return temp;
 }
@@ -254,6 +255,7 @@ const matrix_complex simulation::georgiGlashowActionPhiMPart(long unsigned int s
 
 const matrix_complex simulation::georgiGlashowActionLambdaPart(long unsigned int site_index, const lattice& L_in) const
 {
+        matrix_complex phi;
         int jump0[4] = {0};
         phi =  matCall(L_in,4,site_index,jump0);
         return 2.0 * lambda * phi *(phi*phi).trace();
