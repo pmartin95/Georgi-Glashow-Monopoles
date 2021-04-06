@@ -3,6 +3,7 @@
 #ifndef __STATISTICS__
 
 typedef double (*vectorFunc) (const std::vector<double>& );
+typedef double (*vectorVectorFunc) (const std::vector<std::vector<double>>& );
 
 #include <cstdlib>
 #include <iomanip>
@@ -31,5 +32,8 @@ double sumVec(const std::vector<double>& input);
 
 int computeJackknifeStatistics(const std::vector<double>& inputData, int setLength, double& Jackknife_ave, double& Jackknife_error );
 int computeJackknifeStatistics(const std::vector<double>& inputData, vectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error );
+int computeJackknifeStatistics(const std::vector<std::vector<double>>& inputData, vectorVectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error );
 double cosave(const std::vector<double>& in);
+
+double CreutzRatio(std::vector<std::vector<double>> rectangleData); 
 #endif
