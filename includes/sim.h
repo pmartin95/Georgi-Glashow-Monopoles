@@ -20,6 +20,7 @@
 #include <random>
 #include <string>
 #include "lattice.h"
+#include "statistics.h"
 #include "rand.h"
 #include <iomanip>
 #define DEFAULT_STEPS 10
@@ -162,6 +163,7 @@ void generateScheduleFile(const std::string& filename,const std::vector<double>&
 void loadScheduleValues(int i);
 void runHMCSimulationSchedule(int init_iter,int iter, int iter_measure);
 void runMHMCSimulationSchedule(int iter, int iter_measure);
+void convertDataForJackknifeCreutz(double g_in,int R, std::vector<std::vector<double> >& rectData) const;
 //private:
 int steps;
 int nAccepts, nRejects;
@@ -175,7 +177,7 @@ Plattice P, Ptemp[2];
 std::mt19937_64 randomGenerator;
 simMatrixReturn boundary_condition;
 std::vector<data_point_t> data;
-std::vector<std::vector<double>> wilsonRectanglesWhole, wilsonRectanglesOne;
+
 std::vector<schedule_element_t> schedule;
 
 };
