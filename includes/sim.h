@@ -13,6 +13,8 @@
 // #define __CHECK_HERMITIAN__
 // #define __CHECK_LATTICE__
 
+
+
 #define CLOSETOZERO 1.0E-6
 
 #include <random>
@@ -34,14 +36,32 @@
 typedef double (*oneVarDoubleFunc) (double);
 
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
-
+//Data Collection parameters
+#define RECORD_G true
+#define RECORD_M2 false
+#define RECORD_LAMBDA false
+#define RECORD_PHI2 true
+#define RECORD_RECTANGLES true
+#define RECT_SIZE 4 // Generates RECT_SIZE-1xRECT_SIZE-1 Wilson loops
 typedef struct data_point
 {
+  #if RECORD_G
         double g_value;
+  #endif
+  #if RECORD_M2
         double m2_value;
+  #endif
+  #if RECORD_LAMBDA
         double lambda_value;
-        double average_plaquette_value;
-        double average_phi2_value;
+  #endif
+  #if RECORD_PHI2
+  double average_phi2_value;
+  #endif
+  #if RECORD_RECTANGLES
+        double upper_rectangles[RECT_SIZE];
+        double lower_rectangles[RECT_SIZE-1];
+  #endif
+
 } data_point_t;
 
 typedef struct schedule_element
