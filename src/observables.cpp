@@ -7,7 +7,89 @@
 #include <omp.h>
 #include "sim.h"
 #include "stopwatch.h"
+double simulation::CreutzRatio(int i, int j)
+{
+        double ratio_temp;
+        ratio_temp = averageWilsonRectangle(i,j);
+        ratio_temp *= averageWilsonRectangle(i-1,j-1);
+        ratio_temp /= averageWilsonRectangle(i-1,j);
+        ratio_temp /= averageWilsonRectangle(i,j-1);
+        if(ratio_temp > 0.0d)
+                return -log(ratio_temp);
+        else
+        {
+                std::cout << "cannot perform negative log operation.\n";
+                return 0;
+        }
+}
 
+double simulation::averageWilsonRectangle(int dir1_len,int dir2_len) const
+{
+        double cumulative_value = 0.0;
+        int i, j;
+        for(unsigned long site_index=0; site_index < L.nsites; site_index++) FORALLDIR(i) FORALLDIRBUT(j,i)
+                {
+                        cumulative_value += rectangleWilson(site_index,i,dir1_len,j,dir2_len);
+                }
+        return cumulative_value/static_cast<double>(4*3*L.nsites);
+}
+
+double simulation::rectangleWilson(unsigned long site_index, int dir1,int dir1_len, int dir2, int dir2_len) const
+{
+        matrix_complex cumulative;
+        long unsigned current_site_index;
+        int current_coordinates[4] = {0};
+        int jump_coordinates[4] = {0};
+        cumulative.setIdentity();
+        current_site_index = site_index;
+        L.indexToCoordinate(site_index,current_coordinates);
+        for(int i=0; i < dir1_len; i++)
+        {
+
+                cumulative *= matCall(L,dir1,site_index,jump_coordinates);
+                current_coordinates[dir1]++;
+                jump_coordinates[dir1]++;
+                current_site_index = L.coordinateToIndex(current_coordinates);
+        }
+        for(int i=0; i < dir2_len; i++)
+        {
+
+                cumulative *= matCall(L,dir2,site_index,jump_coordinates);
+                current_coordinates[dir2]++;
+                jump_coordinates[dir2]++;
+                current_site_index = L.coordinateToIndex(current_coordinates);
+        }
+        current_coordinates[dir1]--;
+        jump_coordinates[dir1]--;
+        current_site_index = L.coordinateToIndex(current_coordinates);
+        for(int i=0; i < dir1_len; i++)
+        {
+
+                cumulative *= matCall(L,dir1,site_index,jump_coordinates).adjoint();
+                current_coordinates[dir1]--;
+                jump_coordinates[dir1]--;
+                current_site_index = L.coordinateToIndex(current_coordinates);
+        }
+        current_coordinates[dir1]++;
+        jump_coordinates[dir1]++;
+        current_coordinates[dir2]--;
+        jump_coordinates[dir2]--;
+        current_site_index = L.coordinateToIndex(current_coordinates);
+        for(int i=0; i < dir2_len; i++)
+        {
+
+                cumulative *= matCall(L,dir2,site_index,jump_coordinates).adjoint();
+                current_coordinates[dir2]--;
+                jump_coordinates[dir2]--;
+                current_site_index = L.coordinateToIndex(current_coordinates);
+        }
+        current_coordinates[dir2]++;
+        jump_coordinates[dir2]++;
+        current_site_index = L.coordinateToIndex(current_coordinates);
+        if(!( current_site_index ==site_index    ))
+                std::cout << "index did not line up.\n";
+        return cumulative.trace().real()*0.5;
+}
 //Observables
 double simulation::averagePlaquettes() const
 {
@@ -26,7 +108,7 @@ double simulation::averagePlaquettes() const
     #pragma omp critical
                 subtotal+=local_subtotal;
         }
-        return subtotal / static_cast<double>(L.nsites);
+        return subtotal/static_cast<double>(4*3*L.nsites);
 }
 
 const matrix_complex simulation::averagePhi() const
@@ -66,7 +148,7 @@ const matrix_complex simulation::averagePhi2() const
     #pragma omp critical
                 subtotal += local_subtotal;
         }
-        return subtotal / static_cast<double>(L.nsites);
+        return subtotal/static_cast<double>(4*3*L.nsites);
 }
 // Compute the X(1,1) Creutz ratio
 double simulation::CreutzRatio() const
