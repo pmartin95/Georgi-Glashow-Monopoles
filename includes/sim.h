@@ -26,7 +26,7 @@
 #define FIRST_TERM_PARAM 1.0 //for turning on an off the first part of the action
 #define DEFAULT_LAMBDA  0.1
 #define DEFAULT_M2 -0.2
-#define DEFAULT_STARTING_G 0.4472135955 //1.318 //
+#define DEFAULT_STARTING_G 1.318 //0.4472135955 //
 
 
 #define matCall ((*this).*boundary_condition)
@@ -97,6 +97,10 @@ const matrix_complex georgiGlashowActionPhiKineticPart(long unsigned int site_in
 const matrix_complex georgiGlashowActionPhiMPart(long unsigned int site_index, const lattice& L_in) const;
 const matrix_complex georgiGlashowActionLambdaPart(long unsigned int site_index, const lattice& L_in) const;
 //Observables
+double CreutzRatio(int i, int j);
+
+double averageWilsonRectangle(int dir1_len,int dir2_len) const;
+double rectangleWilson(unsigned long site_index, int dir1,int dir1_len, int dir2, int dir2_len) const;
 double averagePlaquettes() const;   //
 const matrix_complex averagePhi() const;
 const matrix_complex averagePhi2() const;
@@ -151,6 +155,7 @@ Plattice P, Ptemp[2];
 std::mt19937_64 randomGenerator;
 simMatrixReturn boundary_condition;
 std::vector<data_point_t> data;
+std::vector<std::vector<double>> wilsonRectanglesWhole, wilsonRectanglesOne;
 std::vector<schedule_element_t> schedule;
 
 };
