@@ -16,11 +16,25 @@
 void simulation::appendDataPoint()
 {
         data_point_t temp;
+  #if RECORD_G
         temp.g_value = g;
+  #endif
+  #if RECORD_M2
         temp.m2_value = m2;
+  #endif
+  #if RECORD_LAMBDA
         temp.lambda_value = lambda;
-        temp.average_plaquette_value =averagePlaquettes();
+  #endif
+  #if RECORD_PHI2
         temp.average_phi2_value = averagePhi2().trace().real();
+  #endif
+  #if RECORD_RECTANGLES
+        for(int i =0; i < RECT_SIZE; i++)
+                temp.upper_rectangles[i] = averageWilsonRectangle(i,i);
+        for(int j = 0; j< RECT_SIZE-1; j++)
+                temp.lower_rectangles[j] =averageWilsonRectangle(j,j-1);
+  #endif
+
         data.push_back(temp);
 }
 
@@ -35,15 +49,28 @@ void simulation::printDataFile(const std::string& filename) const
         int width = 20;
         std::ofstream datafile;
         datafile.open(filename,std::ios::out);
-        datafile << "#g m^2 lambda average_plaquette average_phi^2\n";
+        datafile << "#g m^2 lambda average_phi^2 upper_rectangles lower_rectangles";
         for(int i=0; i<data.size(); i++)
         {
-                datafile << std::setw(width) << data[i].g_value;
-                datafile << std::setw(width) << data[i].m2_value;
-                datafile << std::setw(width) << data[i].lambda_value;
-                datafile << std::setw(width) << data[i].average_plaquette_value;
-                datafile << std::setw(width) << data[i].average_phi2_value;
                 datafile << std::endl;
+                #if RECORD_G
+                datafile << std::setw(width) << data[i].g_value;
+                #endif
+                #if RECORD_M2
+                datafile << std::setw(width) << data[i].m2_value;
+                #endif
+                #if RECORD_LAMBDA
+                datafile << std::setw(width) << data[i].lambda_value;
+                #endif
+                #if RECORD_PHI2
+                datafile << std::setw(width) << data[i].average_phi2_value;
+                #endif
+                #if RECORD_RECTANGLES
+                for(int i =0; i < RECT_SIZE; i++)
+                        datafile << std::setw(width) << data[i].upper_rectangles[i];
+                for(int j = 0; j< RECT_SIZE-1; j++)
+                        datafile << std::setw(width) << data[i].lower_rectangles[j];
+                #endif
         }
         datafile.close();
 }
