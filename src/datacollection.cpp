@@ -149,3 +149,21 @@ void simulation::runMHMCSimulationSchedule(int iter, int iter_measure)
                 }
         }
 }
+
+//Looks for values of g_in in the dataset
+//Pulls out the W(R,R), W(R-1,R), and W(R-1,R-2) Wilson rectangles
+void simulation::convertDataForJackknifeCreutz(double g_in,int R, std::vector<std::vector<double> >& rectData) const
+{
+        std::vector<double> WR[3];
+        for(int i = 0; i < data.size(); i++)
+                if(g_in ==data[i].g_value)
+                {
+                        WR[0].push_back(data[i].upper_rectangles[R]);
+                        WR[1].push_back(data[i].lower_rectangles[R-1]);
+                        WR[2].push_back(data[i].upper_rectangles[R-1]);
+                }
+        rectData.clear();
+        rectData.push_back(WR[0]);
+        rectData.push_back(WR[1]);
+        rectData.push_back(WR[2]);
+}
