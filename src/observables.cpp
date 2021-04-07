@@ -7,22 +7,22 @@
 #include <omp.h>
 #include "sim.h"
 #include "stopwatch.h"
-double simulation::CreutzRatio(int i, int j)
-{
-        double ratio_temp;
-        ratio_temp = averageWilsonRectangle(i,j);
-        ratio_temp *= averageWilsonRectangle(i-1,j-1);
-        ratio_temp /= averageWilsonRectangle(i-1,j);
-        ratio_temp /= averageWilsonRectangle(i,j-1);
-        if(ratio_temp > 0.0d)
-                return -log(ratio_temp);
-        else
-        {
-                std::cout << "cannot perform negative log operation.\n";
-                return 0;
-        }
-}
-
+// double simulation::CreutzRatio(int i, int j)
+// {
+//         double ratio_temp;
+//         ratio_temp = averageWilsonRectangle(i,j);
+//         ratio_temp *= averageWilsonRectangle(i-1,j-1);
+//         ratio_temp /= averageWilsonRectangle(i-1,j);
+//         ratio_temp /= averageWilsonRectangle(i,j-1);
+//         if(ratio_temp > 0.0d)
+//                 return -log(ratio_temp);
+//         else
+//         {
+//                 std::cout << "cannot perform negative log operation.\n";
+//                 return 0;
+//         }
+// }
+//
 double simulation::averageWilsonRectangle(int dir1_len,int dir2_len) const
 {
         double cumulative_value = 0.0;
@@ -150,14 +150,14 @@ const matrix_complex simulation::averagePhi2() const
         }
         return subtotal/static_cast<double>(4*3*L.nsites);
 }
-// Compute the X(1,1) Creutz ratio
-double simulation::CreutzRatio() const
-{
-        double W11;
-        W11 = averagePlaquettes();
-        if(W11 > 0.0)
-                return -log(W11);
-        else
-                return 0;
-
-}
+// // Compute the X(1,1) Creutz ratio
+// double simulation::CreutzRatio() const
+// {
+//         double W11;
+//         W11 = averagePlaquettes();
+//         if(W11 > 0.0)
+//                 return -log(W11);
+//         else
+//                 return 0;
+//
+// }
