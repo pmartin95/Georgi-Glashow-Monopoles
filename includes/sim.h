@@ -118,14 +118,14 @@ const matrix_complex georgiGlashowActionPhiKineticPart(long unsigned int site_in
 const matrix_complex georgiGlashowActionPhiMPart(long unsigned int site_index, const lattice& L_in) const;
 const matrix_complex georgiGlashowActionLambdaPart(long unsigned int site_index, const lattice& L_in) const;
 //Observables
-double CreutzRatio(int i, int j);
+// double CreutzRatio(int i, int j);
 
 double averageWilsonRectangle(int dir1_len,int dir2_len) const;
 double rectangleWilson(unsigned long site_index, int dir1,int dir1_len, int dir2, int dir2_len) const;
 double averagePlaquettes() const;   //
 const matrix_complex averagePhi() const;
 const matrix_complex averagePhi2() const;
-double CreutzRatio() const;
+// double CreutzRatio() const;
 //Setup and Reset functions
 void setupBoundaryConditions();
 void setupBoundaryConditions( char boundaryType);
@@ -164,6 +164,7 @@ void loadScheduleValues(int i);
 void runHMCSimulationSchedule(int init_iter,int iter, int iter_measure);
 void runMHMCSimulationSchedule(int iter, int iter_measure);
 void convertDataForJackknifeCreutz(double g_in,int R, std::vector<std::vector<double> >& rectData) const;
+void stringTension(int blk_len);
 //private:
 int steps;
 int nAccepts, nRejects;
