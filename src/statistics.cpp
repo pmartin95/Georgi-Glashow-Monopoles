@@ -105,7 +105,7 @@ int computeJackknifeStatistics(const std::vector<std::vector<double> >& inputDat
 
 
 //First vector is W(R,R), then W(R,R-1), then W(R-1,R-1)
-double CreutzRatio(std::vector<std::vector<double> >rectangleData)
+double CreutzRatio(const std::vector<std::vector<double> >& rectangleData)
 {
         if( rectangleData.size() != 3)
                 std::cout << "Data error: improper vector size.\n";
@@ -114,6 +114,8 @@ double CreutzRatio(std::vector<std::vector<double> >rectangleData)
         WRR1 = average(rectangleData[1]);
         WR1R1 = average(rectangleData[2]);
         WRR1 = WRR1 * WRR1;
-
-        return -log(WRR * WR1R1/WRR1);
+        if(WRR * WR1R1/WRR1>0.0)
+                return -log(WRR * WR1R1/WRR1);
+        else
+                return 0.0;
 }
