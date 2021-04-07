@@ -11,6 +11,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <omp.h>
 #include "sim.h"
+#include "statistics.h"
 #include "stopwatch.h"
 
 void simulation::appendDataPoint()
@@ -156,7 +157,7 @@ void simulation::convertDataForJackknifeCreutz(double g_in,int R, std::vector<st
 {
         std::vector<double> WR[3];
         for(int i = 0; i < data.size(); i++)
-                if(g_in ==data[i].g_value)
+                if(g_in == data[i].g_value)
                 {
                         WR[0].push_back(data[i].upper_rectangles[R]);
                         WR[1].push_back(data[i].lower_rectangles[R-1]);
@@ -166,4 +167,40 @@ void simulation::convertDataForJackknifeCreutz(double g_in,int R, std::vector<st
         rectData.push_back(WR[0]);
         rectData.push_back(WR[1]);
         rectData.push_back(WR[2]);
+}
+
+void simulation::stringTension(int blk_len)
+{
+        //go through data and compile data together that has the same g value.
+        //bin the data into a vector of vectors
+        //ship the binned data through Jackknife with the Creutz ratio function
+        //compile g values, string tension,and error all into vectors
+        //flip around g into beta
+        //output the beta, tension, and error to file
+        double current_g;
+        int current_data_index;
+        std::vector<std::vector<double> > dataCollect[RECT_SIZE-1];
+        std::vector<double> final_g;
+        std::vector<std::vector<double> > CreutzRatios(RECT_SIZE-1), CreutzRatioErrors(RECT_SIZE-1);
+
+        current_data_index = 0;
+        while(current_data_index < data.size())
+        {
+                current_g = data[current_data_index].g_value;
+                for(int R = 1; R<RECT_SIZE; R++)
+                {
+                        convertDataForJackknifeCreutz(current_g,R,dataCollect[R-1]);
+                        double temp_ave, temp_error;
+                        if( !computeJackknifeStatistics(dataCollect[R-1], CreutzRatio,  blk_len, temp_ave, temp_error ) )
+                        {
+                                final_g.push_back(current_g);
+                                CreutzRatios[R-1].push_back(temp_ave);
+                                CreutzRatioErrors[R-1].push_back(temp_error);
+                        }
+                }
+                while(current_g == data[current_data_index].g_value && current_data_index < data.size())
+                        current_data_index++;
+
+        }
+
 }
