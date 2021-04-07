@@ -35,5 +35,5 @@ int computeJackknifeStatistics(const std::vector<double>& inputData, vectorFunc 
 int computeJackknifeStatistics(const std::vector<std::vector<double>>& inputData, vectorVectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error );
 double cosave(const std::vector<double>& in);
 
-double CreutzRatio(std::vector<std::vector<double>> rectangleData); 
+double CreutzRatio(const std::vector<std::vector<double>>& rectangleData); 
 #endif
