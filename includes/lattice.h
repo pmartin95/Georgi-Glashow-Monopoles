@@ -90,11 +90,16 @@ void setLatticeSite(long unsigned int site_index, const matrix_complex& A);
 void setLatticeSite(long unsigned int site_index,int dir, const matrix_complex& A);
 void infoPrint() const;
 long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
-long unsigned int coordinateToIndex(int (&coordinates)[4]) const;
+long unsigned int coordinateToIndex(const int (&coordinates)[4]) const;
 long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
-long unsigned int jumpIndex(long unsigned int index,int (&jump)[4]);
+long unsigned int jumpIndex(long unsigned int index,int jump[4]);
 void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
 void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
+//
+const matrix_complex directMatCall(unsigned long int site_index,int matrix_num) const;
+int shiftToLattice(int coordinate, int dir) const;
+long unsigned shiftToLattice(const long unsigned site_index,const int jump[4]) const;
+int incrementCoordinate(int coordinate,int dir) const;//
 //private:
 int nt,nx,ny,nz;
 int ns[4];
@@ -123,7 +128,7 @@ Plattice& operator =(Plattice&& L_in);
 //Utilty functions
 void infoPrint() const;
 long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
-long unsigned int coordinateToIndex(int (&coordinates)[4]) const;
+long unsigned int coordinateToIndex(int coordinates[4]) const;
 long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
 void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
 void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
@@ -135,5 +140,6 @@ long int nsites;
 Plattice_site * site;
 };
 
+bool isJump(const int jump[4]);
 
 #endif
