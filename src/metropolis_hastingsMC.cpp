@@ -20,6 +20,7 @@
 void simulation::evolveFieldMHMC(long unsigned int site_index, int dir)
 {
         Ltemp[0].site[site_index].link[dir] = smallSU2Matrix(randomGenerator)*L.site[site_index].link[dir];
+        std::cout << "in evolve step, site index is " << site_index <<"\n";
 }
 
 void simulation::evolveFieldMHMC(long unsigned int site_index)
@@ -35,6 +36,7 @@ void simulation::evolveFieldMHMC(long unsigned int site_index)
 //after every update would be very computationally intensive.
 double simulation::actionDifference(long unsigned int site_index, int dir)
 {
+        std::cout << "in actiondifference. site_index is " << site_index  << "\n";
         double oldMixed, newMixed;
         double oldPlaq, newPlaq;
         double oldS, newS;
@@ -43,17 +45,22 @@ double simulation::actionDifference(long unsigned int site_index, int dir)
         int dir1;
         invg2 = 1.0d/(g*g);
 
-
+        std::cout << "in action diff: post initialization" << std::endl;
         oldMixed = mixedGaugeHiggsTerm(L,site_index,dir).trace().real();
         newMixed = mixedGaugeHiggsTerm(Ltemp[0],site_index,dir).trace().real();
+        std::cout << "after gaugfe terms" << std::endl;
         oldPlaq = 0.0;
         newPlaq = 0.0;
 
         FORALLDIRBUT(dir1,dir)
         {
+                std::cout << "plaq" << std::endl;
                 oldPlaq +=  plaquette(L,site_index, dir, dir1).trace().real();
                 newPlaq +=  plaquette(Ltemp[0],site_index, dir, dir1).trace().real();
+                std::cout << "2" << std::endl;
                 tempSiteIndex = L.jumpIndex(site_index,dir1,-1);
+                std::cout << "3" << std::endl;
+                std::cout << "in actiondiff function pre plaquette. temp_site_index is " << tempSiteIndex  << "\n";
                 oldPlaq +=  plaquette(L,tempSiteIndex, dir, dir1).trace().real();
                 newPlaq +=  plaquette(Ltemp[0],tempSiteIndex, dir, dir1).trace().real();
         }
@@ -96,9 +103,12 @@ double simulation::actionDifference(long unsigned int site_index)
 //The following two routines determines whether or not the proposed moved should be accepted.
 void simulation::acceptOrReject(long unsigned int site_index,int dir)
 {
-        double deltaS = actionDifference(site_index,dir);
+        std::cout << "in accept function. site_index is " << site_index  << "\n";
+        double deltaS = actionDifference(site_index,dir); //HERE
+
         double Prb = std::min( std::exp(-deltaS),1.0   );
         double Rnd = uniformReal(randomGenerator,0.0,1.0);
+
         if(Rnd < Prb) //Accept
         {
                 AcceptanceCounter(true);
@@ -113,6 +123,7 @@ void simulation::acceptOrReject(long unsigned int site_index,int dir)
 
 void simulation::acceptOrReject(long unsigned int site_index)
 {
+        std::cout << "in accept function. site_index is " << site_index  << "\n";
         double deltaS = actionDifference(site_index);
         double Prb = std::min( std::exp(-deltaS),1.0   );
         double Rnd = uniformReal(randomGenerator,0.0,1.0);
@@ -137,11 +148,16 @@ void simulation::sweepMHMC()
         int dir;
         for(site_index = 0; site_index< L.nsites; site_index++)
         {
+
                 #ifdef __GAUGE_EVOLUTION__ //Turns gauge evolution on/off
                 FORALLDIR(dir)
                 {
+
                         evolveFieldMHMC(site_index, dir);
+
                         acceptOrReject(site_index,dir);
+
+
                 }
                 #endif
 
@@ -160,6 +176,10 @@ void simulation::sweepMHMC()
 void simulation::multiSweepMHMC(int Nsweeps)
 {
         for(int i = 0; i < Nsweeps; i++)
+        {
                 sweepMHMC();
+
+        }
+
         //printAcceptance();
 }
