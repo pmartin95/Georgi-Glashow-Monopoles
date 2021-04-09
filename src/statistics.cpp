@@ -73,15 +73,19 @@ int computeJackknifeStatistics(const std::vector<std::vector<double> >& inputDat
         if(inputData[0].size()%setLength != 0)
                 return JACKKNIFE_NO_DIVIDE;
         std::vector<std::vector<double> > holdingVector;
+        holdingVector.reserve(inputData.size());
+        std::vector<double> v = {0.0};
+        for(int i =0; i<inputData.size(); i++ )
+                holdingVector.push_back(v);
 
         int numSets;
         numSets = inputData[0].size()/setLength;
         std::vector<double> setOfAverages(numSets,0.0);
         for(int i = 0; i < numSets; i++ )
         {
-                for(int j = 0; j< inputData.size(); j++)
+                for(int j = 0; j < inputData.size(); j++)
                 {
-                        holdingVector[j].clear();
+                        holdingVector[j].erase(holdingVector[j].begin(), holdingVector[j].end());
                         holdingVector[j].reserve(inputData[j].size()-setLength);
                         holdingVector[j].insert(holdingVector[j].end(),inputData[j].begin(),inputData[j].begin() +i*setLength  );
                         holdingVector[j].insert(holdingVector[j].end(),inputData[j].begin() + (i+1)*setLength,inputData[j].end());
@@ -108,14 +112,21 @@ int computeJackknifeStatistics(const std::vector<std::vector<double> >& inputDat
 double CreutzRatio(const std::vector<std::vector<double> >& rectangleData)
 {
         if( rectangleData.size() != 3)
-                std::cout << "Data error: improper vector size.\n";
-        double WRR, WRR1, WR1R1;
+        {
+                std::cout << "Data error: improper vector size.\n"
+                          << "Actual size is " << rectangleData.size() << std::endl;
+                exit(1);
+
+        }
+
+        double WRR, WRR1, WR1R1,temp;
         WRR = average(rectangleData[0]);
         WRR1 = average(rectangleData[1]);
         WR1R1 = average(rectangleData[2]);
         WRR1 = WRR1 * WRR1;
-        if(WRR * WR1R1/WRR1>0.0)
-                return -log(WRR * WR1R1/WRR1);
+        temp = WRR * WR1R1/WRR1;
+        if(temp>0.0)
+                return -log(temp);
         else
                 return 0.0;
 }
