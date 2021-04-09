@@ -35,73 +35,15 @@ void simulation::setupBoundaryConditions( char boundaryType)
         }
 }
 
-const matrix_complex simulation::directMatCall(const lattice& L_in,unsigned long int site_index,int matrix_num) const
-{
-        if(matrix_num<4)
-                return L_in.site[site_index].link[matrix_num];
-        else
-                return L_in.site[site_index].higgs;
-}
-//The following function shifts a coordinate to be on lattice via adding and
-//reducing based on lattice size
-int simulation::shiftToLattice(const lattice& L_in,int coordinate, int dir) const
-{
-
-        int temp_coordinate = coordinate;
-        while(temp_coordinate < 0.0)
-        {
-                temp_coordinate += L_in.ns[dir];
-        }
-        return (temp_coordinate)%(L_in.ns[dir]);
-}
-
-int simulation::incrementCoordinate(const lattice& L_in,int coordinate,int dir) const
-{
-        if(coordinate > L_in.ns[dir] )
-                return coordinate - L_in.ns[dir];
-        else if(coordinate <  0)
-                return coordinate + L_in.ns[dir];
-        else
-        {
-                std::cout << "ERROR: Indices not corresponding" << std::endl;
-                std::exit(1);
-        }
-}
 
 const matrix_complex simulation::periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index,const int jump[4]) const
 {
         long unsigned int new_index;
-        int i,dir,x[4];
-        bool isJump;
 
-
-        //The following checks to see if there is a jump at all.
-        //If not, then the pure link/Higgs field should just be returned directly
-        //For clarification, if isJump is true then there is some jump
-        //if isJump is false, there is no jump
-        FORALLDIR(i)
-        {
-                isJump = (jump[i] != 0);
-                if(isJump)
-                        break;
-        }
-        if(!isJump)
-                return directMatCall(L_in,index,matrix_num);
-
-        //The following decomposes the index into coordinates and then detects
-        //if the called direction is over the edge of the lattice. If so, then
-        // it does a modulus on the operation that returns it to the lattice.
-        //It then converts the coordinates back to an index and returns the
-        //corresponding field at that site.
-        L_in.indexToCoordinate(index, x);
-        FORALLDIR(dir)
-        {
-                x[dir] += jump[dir];
-                if(x[dir] >= L_in.ns[dir] || x[dir] < 0)
-                        x[dir] = shiftToLattice(L_in,x[dir],dir);
-        }
-        new_index = L_in.coordinateToIndex(x);
-        return directMatCall(L_in, new_index,matrix_num);
+        if(!isJump(jump))
+                return L_in.directMatCall(index,matrix_num);
+        new_index = L_in.shiftToLattice(index,jump);
+        return L_in.directMatCall(new_index,matrix_num);
 }
 
 
@@ -110,41 +52,25 @@ const matrix_complex simulation::cBoundaryCondition(const lattice& L_in,int matr
 {
         long unsigned int new_index;
         int i,dir,x[4],y[4];
-        bool isJump;
         matrix_complex temp_mat;
-        //The following checks to see if there is a jump at all.
-        //If not, then the pure link/Higgs field should just be returned directly
-        //For clarification, if isJump is true then there is some jump
-        //if isJump is false, there is no jump
-        FORALLDIR(i)
-        {
-                isJump = (jump[i] != 0);
-                if(isJump)
-                        break;
-        }
-        if(!isJump)
-                return directMatCall(L_in,index,matrix_num);
 
-        //The following block breaks apart the index into coordinates. It then
-        // creates another set of coordinates, y and shifts them onto the lattice.
-        //It then find the matrix at the y coordinates and saves it to temp_mat.
-        //Temp_mat is then ctwisted while x is being incremeneted to y. Note that
-        //I do not increment the time direction because we are treating time periodically
+        if(!isJump(jump))
+                return L_in.directMatCall(index,matrix_num);
 
         L_in.indexToCoordinate(index, x);
         FORALLDIR(dir)
         {
                 x[dir] += jump[dir];
-                y[dir] = shiftToLattice(L_in,x[dir],dir);
+                y[dir] = L_in.shiftToLattice(x[dir],dir);
         }
 
-        temp_mat = directMatCall(L_in,L_in.coordinateToIndex(y),matrix_num);
+        temp_mat = L_in.directMatCall(L_in.coordinateToIndex(y),matrix_num);
 
         for(dir = 1; dir < 4; dir++)
         {
                 while(x[dir] != y[dir])
                 {
-                        x[dir] = incrementCoordinate(L_in,x[dir],dir);
+                        x[dir] = L_in.incrementCoordinate(x[dir],dir);
                         temp_mat = cTwist(temp_mat,matrix_num);
                 }
         }
@@ -178,20 +104,11 @@ const matrix_complex simulation::twistedBoundaryCondition(const lattice& L_in,in
 {
         long unsigned int new_index;
         int i,dir,x[4],y[4];
-        bool isJump;
         matrix_complex temp_mat;
-        //The following checks to see if there is a jump at all.
-        //If not, then the pure link/Higgs field should just be returned directly
-        //For clarification, if isJump is true then there is some jump
-        //if isJump is false, there is no jump
-        FORALLDIR(i)
-        {
-                isJump = (jump[i] != 0);
-                if(isJump)
-                        break;
-        }
-        if(!isJump)
-                return directMatCall(L_in,index,matrix_num);
+
+
+        if(!isJump(jump))
+                return L_in.directMatCall(index,matrix_num);
 
         //The following block breaks apart the index into coordinates. It then
         // creates another set of coordinates, y and shifts them onto the lattice.
@@ -203,16 +120,16 @@ const matrix_complex simulation::twistedBoundaryCondition(const lattice& L_in,in
         FORALLDIR(dir)
         {
                 x[dir] += jump[dir];
-                y[dir] = shiftToLattice(L_in,x[dir],dir);
+                y[dir] = L_in.shiftToLattice(x[dir],dir);
         }
 
-        temp_mat = directMatCall(L_in,L_in.coordinateToIndex(y),matrix_num);
+        temp_mat = L_in.directMatCall(L_in.coordinateToIndex(y),matrix_num);
 
         for(dir = 1; dir < 4; dir++)
         {
                 while(x[dir] != y[dir])
                 {
-                        x[dir] = incrementCoordinate(L_in,x[dir],dir);
+                        x[dir] = L_in.incrementCoordinate(x[dir],dir);
                         temp_mat = TwistField(temp_mat,matrix_num,dir);
                 }
         }
