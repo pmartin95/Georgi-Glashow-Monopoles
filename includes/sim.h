@@ -136,9 +136,7 @@ void setupSteps(int Nsteps);
 void resetMomenta();
 void resetAcceptanceCounter();
 //Boundary Conditions
-const matrix_complex directMatCall(const lattice& L_in,unsigned long int site_index,int matrix_num) const;
-int shiftToLattice(const lattice& L_in,int coordinate, int dir) const;
-int incrementCoordinate(const lattice& L_in,int coordinate,int dir) const;
+
 const matrix_complex periodicBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]) const;
 const matrix_complex cBoundaryCondition(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4]) const;
 const matrix_complex cTwist(const matrix_complex& mat_A, int matrix_num) const;
@@ -164,7 +162,7 @@ void loadScheduleValues(int i);
 void runHMCSimulationSchedule(int init_iter,int iter, int iter_measure);
 void runMHMCSimulationSchedule(int iter, int iter_measure);
 void convertDataForJackknifeCreutz(double g_in,int R, std::vector<std::vector<double> >& rectData) const;
-void stringTension(int blk_len);
+void stringTension(const std::string& base_filename,int blk_len);
 //private:
 int steps;
 int nAccepts, nRejects;
