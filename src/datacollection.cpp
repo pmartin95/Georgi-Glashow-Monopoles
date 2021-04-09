@@ -146,6 +146,8 @@ void simulation::runMHMCSimulationSchedule(int iter, int iter_measure)
                 for(int iter_index = 0; iter_index < num_iter; iter_index++)
                 {
                         multiSweepMHMC(iter_measure);
+                        if(iter_index == 0)
+                                std::cout << "Made it past a sweep.\n";
                         appendDataPoint();
                 }
         }
@@ -169,7 +171,7 @@ void simulation::convertDataForJackknifeCreutz(double g_in,int R, std::vector<st
         rectData.push_back(WR[2]);
 }
 
-void simulation::stringTension(int blk_len)
+void simulation::stringTension(const std::string& base_filename,int blk_len)
 {
         //go through data and compile data together that has the same g value.
         //bin the data into a vector of vectors
@@ -180,27 +182,49 @@ void simulation::stringTension(int blk_len)
         double current_g;
         int current_data_index;
         std::vector<std::vector<double> > dataCollect[RECT_SIZE-1];
-        std::vector<double> final_g;
+        for(int i=0; i < RECT_SIZE-1; i++)
+                dataCollect[i].resize(3);
+        std::vector<double> final_g, betas;
         std::vector<std::vector<double> > CreutzRatios(RECT_SIZE-1), CreutzRatioErrors(RECT_SIZE-1);
 
         current_data_index = 0;
         while(current_data_index < data.size())
         {
                 current_g = data[current_data_index].g_value;
+                final_g.push_back(current_g);
                 for(int R = 1; R<RECT_SIZE; R++)
                 {
                         convertDataForJackknifeCreutz(current_g,R,dataCollect[R-1]);
                         double temp_ave, temp_error;
                         if( !computeJackknifeStatistics(dataCollect[R-1], CreutzRatio,  blk_len, temp_ave, temp_error ) )
                         {
-                                final_g.push_back(current_g);
+
                                 CreutzRatios[R-1].push_back(temp_ave);
                                 CreutzRatioErrors[R-1].push_back(temp_error);
                         }
+
                 }
                 while(current_g == data[current_data_index].g_value && current_data_index < data.size())
                         current_data_index++;
 
         }
+        for(int i= 0; i < final_g.size(); i++)
+                betas.push_back(4.0/final_g[i]/final_g[i]);
+
+        ofstream file[RECT_SIZE-1];
+        for(int i = 0; i < RECT_SIZE-1; i++)
+        {
+                std::ofstream file;
+                file.open(base_filename+to_string(i)+".txt",std::ios::out);
+                std::cout << "g size " << final_g.size() << std::endl;
+                file << std::fixed << std::setprecision(8);
+                for(int j=0; j<final_g.size(); j++)
+                        if(CreutzRatios[i][j]>0.0)
+                                file << betas[j]
+                                     << " " << CreutzRatios[i][j]
+                                     << " " <<CreutzRatioErrors[i][j] << std::endl;
+                file.close();
+        }
+
 
 }
