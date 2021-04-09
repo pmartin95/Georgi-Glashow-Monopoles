@@ -226,7 +226,7 @@ long unsigned int lattice::coordinateToIndex(int t,int x, int y, int z) const
         return temp;
 }
 
-long unsigned int lattice::coordinateToIndex(int (&coordinates)[4]) const
+long unsigned int lattice::coordinateToIndex(const int (&coordinates)[4]) const
 {
         int t,x,y,z;
         t = coordinates[0];
@@ -248,7 +248,7 @@ long unsigned int lattice::jumpIndex(long unsigned int index, int dir, int jump)
         return coordinateToIndex(x);
 }
 
-long unsigned int lattice::jumpIndex(long unsigned int index,int (&jump)[4])
+long unsigned int lattice::jumpIndex(long unsigned int index,int jump[4])
 {
         int x[4] = {0},dir;
         indexToCoordinate(index, x);
@@ -285,4 +285,59 @@ void lattice::indexToCoordinate(long unsigned int index,int& t, int& x, int& y, 
         temp = (temp - y)/ny;
 
         z = static_cast<int>(temp);
+}
+
+
+const matrix_complex lattice::directMatCall(unsigned long int site_index,int matrix_num) const
+{
+
+        if(matrix_num<4)
+                return site[site_index].link[matrix_num];
+        else
+                return site[site_index].higgs;
+}
+//The following function shifts a coordinate to be on lattice via adding and
+//reducing based on lattice size
+int lattice::shiftToLattice(int coordinate, int dir) const
+{
+        int temp_coordinate = coordinate;
+        while(temp_coordinate < 0.0)
+                temp_coordinate += ns[dir];
+        return (temp_coordinate)%(ns[dir]);
+}
+long unsigned lattice::shiftToLattice(const long unsigned site_index,const int jump[4])const
+{
+        int x[4] ={0}, dir;
+        indexToCoordinate(site_index, x);
+        FORALLDIR(dir)
+        {
+                x[dir] += jump[dir];
+                x[dir] = shiftToLattice(x[dir],dir);
+        }
+        return coordinateToIndex(x);
+}
+int lattice::incrementCoordinate(int coordinate,int dir) const
+{
+        if(coordinate > ns[dir] )
+                return coordinate - ns[dir];
+        else if(coordinate <  0)
+                return coordinate + ns[dir];
+        else
+        {
+                std::cout << "ERROR: Indices not corresponding" << std::endl;
+                std::exit(1);
+        }
+}
+//Checks to see if there is a jump
+bool isJump(const int jump[4])
+{
+        int i;
+        bool jumpp;
+        FORALLDIR(i)
+        {
+                jumpp = (jump[i] != 0);
+                if(jumpp)
+                        break;
+        }
+        return jumpp;
 }
