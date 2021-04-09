@@ -198,7 +198,7 @@ long unsigned int Plattice::coordinateToIndex(int t,int x, int y, int z) const
         return temp;
 }
 
-long unsigned int Plattice::coordinateToIndex(int (&coordinates)[4]) const
+long unsigned int Plattice::coordinateToIndex(int coordinates[4]) const
 {
         int t,x,y,z;
         t = coordinates[0];
