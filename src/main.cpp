@@ -21,6 +21,7 @@
 int main()
 {
 
+        //lattice(g)
 
 
         // simulation sim1;
