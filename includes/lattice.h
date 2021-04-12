@@ -3,6 +3,7 @@
 #ifndef _LATTICE_
 #define __LATTICE__
 #include <cstddef>
+#include <cstdint>
 #include <Eigen/Dense>
 #include <random>
 #include <vector>
@@ -14,77 +15,57 @@
 typedef Eigen::Matrix2cd matrix_complex;
 using namespace std;
 class simulation;
-
+//==============================================================================
+//LATTICE SITE CLASS============================================================
 class lattice_site {
 public:
-friend class lattice;
+friend class lattice_base;
 friend class simulation;
-
+//Constructors------------------------------------------------------------------
 lattice_site();
 lattice_site(const matrix_complex& link0,const matrix_complex& link1, const matrix_complex& link2, const matrix_complex& link3, const matrix_complex& higg_temp  );
 lattice_site(const matrix_complex& link_temp, const matrix_complex& higg_temp  );
-lattice_site(std::mt19937_64& g);
-//Copy constructor
-lattice_site(const lattice_site& site1);
-//Move constructor
-lattice_site(lattice_site&& site1);
+
+lattice_site(const lattice_site& site1); //copy
+lattice_site(lattice_site&& site1); //move
+
+//Destructor--------------------------------------------------------------------
+~lattice_site(){
+}
+//Initialization----------------------------------------------------------------
+void init_lattice_site();
+void init_plattice_site();
+void init_lattice_site(std::mt19937_64& g);
+void init_plattice_site(std::mt19937_64& g);
+//Assignment operators----------------------------------------------------------
+lattice_site& operator =(const lattice_site& site1); //copy
+lattice_site& operator =( lattice_site&& site1); //move
 const matrix_complex& output() const;
 const matrix_complex& output(int i) const;
 friend std::ostream& operator <<(std::ostream& outputStream,const lattice_site& site1);
-//Copy assignment operator
-lattice_site& operator =(const lattice_site& site1);
-//Move assignment operator
-lattice_site& operator =( lattice_site&& site1);
-//private:
 matrix_complex link[4];
 matrix_complex higgs;
 };
 
-class Plattice_site {
-public:
-friend class Plattice;
-friend class simulation;
-Plattice_site();
-Plattice_site(const matrix_complex& link0,const matrix_complex& link1, const matrix_complex& link2, const matrix_complex& link3, const matrix_complex& higg_temp  );
-Plattice_site(std::mt19937_64& g);
-//Copy constructor
-Plattice_site(const Plattice_site& site1);
-//Move constructor
-Plattice_site(Plattice_site&& site1);
-const matrix_complex& output() const;
-const matrix_complex& output(int i) const;
-friend std::ostream& operator <<(std::ostream& outputStream,const Plattice_site& site1);
-
-//Copy assignment operator
-Plattice_site& operator =(const Plattice_site& site1);
-//Move assignment operator
-Plattice_site& operator =( Plattice_site&& site1);
-//private:
-matrix_complex link[4];
-matrix_complex higgs;
-};
-
-class lattice {
+//==============================================================================
+//LATTICE BASE CLASS============================================================
+class lattice_base {
 public:
 friend class simulation;
 friend class Plattice;
 //Setup functions
-lattice();
+lattice_base();
 //Copy Constructor
-lattice(const lattice& L_in);
+lattice_base(const lattice_base & L_in);
 //Move Constructor
-lattice(lattice&& L_in);
-lattice(int Nt, int Nx, int Ny, int Nz);
-
-lattice(const lattice_site& site1);
-lattice(std::mt19937_64& g);
-lattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g);
+lattice_base(lattice_base&& L_in);
+lattice_base(int Nt, int Nx, int Ny, int Nz);
+lattice_base(const lattice_site& site1);
 //Copy assignment operator
-lattice& operator =(const lattice& L_in);
+lattice_base& operator =(const lattice_base& L_in);
 //Move assignment operator
-lattice& operator =(lattice&& L_in);
-~lattice();
-
+lattice_base& operator =(lattice_base&& L_in);
+~lattice_base();
 //Utilty functions
 void setLatticeSite(long unsigned int site_index, const matrix_complex& A);
 void setLatticeSite(long unsigned int site_index,int dir, const matrix_complex& A);
@@ -104,40 +85,32 @@ int incrementCoordinate(int coordinate,int dir) const;//
 int nt,nx,ny,nz;
 int ns[4];
 long int nsites;
-//std::vector<lattice_site> site;
 lattice_site * site;
 };
-
-class Plattice {
+//==============================================================================
+//LATTICE DERIVED CLASS=========================================================
+class lattice : public lattice_base
+{
+public:
+friend class simulation;
+friend class Plattice;
+//Setup functions
+lattice();
+lattice(int Nt, int Nx, int Ny, int Nz);
+lattice(std::mt19937_64& g);
+lattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g);
+};
+//==============================================================================
+//MOMENTUM LATTICE CLASS========================================================
+class Plattice : public lattice_base {
 public:
 friend class simulation;
 friend class lattice;
 //Setup functions
 Plattice();
-Plattice(const Plattice& P_in);
-Plattice(Plattice&& P_in);
-Plattice(const Plattice_site& site1);
 Plattice(std::mt19937_64& g);
 Plattice(std::mt19937_64& g, const lattice& L_in);   //
 Plattice(int Nt, int Nx, int Ny, int Nz,std::mt19937_64& g);
-//Copy assignment operator
-Plattice& operator =(const Plattice& P_in);
-//Move assignment operator
-Plattice& operator =(Plattice&& L_in);
-~Plattice();
-//Utilty functions
-void infoPrint() const;
-long unsigned int coordinateToIndex(int t,int x, int y, int z) const;
-long unsigned int coordinateToIndex(int coordinates[4]) const;
-long unsigned int jumpIndex(long unsigned int index, int dir, int jump);
-void indexToCoordinate(long unsigned int index,int (&coordinates)[4]) const;
-void indexToCoordinate(long unsigned int index,int& t, int& x, int& y, int& z) const;
-//private:
-int nt,nx,ny,nz;
-int ns[4];
-long int nsites;
-//std::vector<Plattice_site> site;
-Plattice_site * site;
 };
 
 bool isJump(const int jump[4]);
