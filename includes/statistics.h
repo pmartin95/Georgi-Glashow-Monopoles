@@ -26,14 +26,17 @@ typedef double (*vectorVectorFunc) (const std::vector<std::vector<double>>& );
 #define __STATISTICS__
 
 
-enum jackknife{JACKKNIFE_SUCCESS, JACKKNIFE_NO_DIVIDE};
+enum jackknife{JACKKNIFE_SUCCESS, JACKKNIFE_NO_DIVIDE,JACKKNIFE_UNEQUAL_SIZED_DATA};
 double average(const std::vector<double>& input);
 double sumVec(const std::vector<double>& input);
 
 int computeJackknifeStatistics(const std::vector<double>& inputData, int setLength, double& Jackknife_ave, double& Jackknife_error );
 int computeJackknifeStatistics(const std::vector<double>& inputData, vectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error );
 int computeJackknifeStatistics(const std::vector<std::vector<double>>& inputData, vectorVectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error );
-double cosave(const std::vector<double>& in);
 
-double CreutzRatio(const std::vector<std::vector<double>>& rectangleData); 
+
+double cosave(const std::vector<double>& in);
+double CreutzRatio(const std::vector<std::vector<double>>& rectangleData);
+double expectExpPhi2(double m2_diff,const vector<double>& twistedphi2,const vector<double>& cphi2);
+std::vector<double> excludeVectorBlock(const std::vector<double>& data,int startLoc, int blockLen);
 #endif

@@ -13,14 +13,7 @@
 
 double average(const std::vector<double>& input)
 {
-        double temp_sum = 0.0d;
-        int vec_size = input.size();
-
-        for(int i=0; i < vec_size; i++)
-                temp_sum += input[i];
-
-        return temp_sum / static_cast<double>(vec_size);
-
+        return sumVec(input) / static_cast<double>(input.size());
 }
 double sumVec(const std::vector<double>& input)
 {
@@ -67,8 +60,7 @@ int computeJackknifeStatistics(const std::vector<double>& inputData, vectorFunc 
         return JACKKNIFE_SUCCESS;
 }
 
-
-int computeJackknifeStatistics(const std::vector<std::vector<double> >& inputData, vectorVectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error )
+int computeJackknifeStatistics(const std::vector<std::vector<double> >& inputData1, vectorVectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error )
 {
         if(inputData[0].size()%setLength != 0)
                 return JACKKNIFE_NO_DIVIDE;
@@ -129,4 +121,22 @@ double CreutzRatio(const std::vector<std::vector<double> >& rectangleData)
                 return -log(temp);
         else
                 return 0.0;
+}
+
+
+double expectExpPhi2(double m2_diff,const vector<double>& twistedphi2,const vector<double>& cphi2)
+{
+        double num, den;
+        num = std::exp(   m2_diff * average(twistedphi2) );
+        den = std::exp(   (m2_1 - m2_2) * average(cphi2) );
+        return -std::log(num/den);
+}
+
+std::vector<double> excludeVectorBlock(const std::vector<double>& data,int startLoc, int blockLen)
+{
+        std::vector<double> holdingVector;
+        holdingVector.reserve(data.size()-blockLen);
+        holdingVector.insert(holdingVector.end(),data.begin(),inputData[j].begin() +startLoc*blockLen);
+        holdingVector.insert(holdingVector.end(),data.begin() + (startLoc+1)*blockLen,data.end());
+        return holdingVector;
 }
