@@ -110,22 +110,23 @@ double georgiGlashowAction(const lattice& L_in) const;
 double kineticTerm(const Plattice& P_in) const;
 double georgiGlashowHamiltonian(const lattice& L_in, const Plattice& P_in) const;
 double Hamiltonian() const;
-const matrix_complex georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
-const matrix_complex georgiGlashowActionPureGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
-const matrix_complex georgiGlashowActionMixedGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
-const matrix_complex georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const;
-const matrix_complex georgiGlashowActionPhiKineticPart(long unsigned int site_index, const lattice& L_in) const;
-const matrix_complex georgiGlashowActionPhiMPart(long unsigned int site_index, const lattice& L_in) const;
-const matrix_complex georgiGlashowActionLambdaPart(long unsigned int site_index, const lattice& L_in) const;
+matrix_complex georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
+matrix_complex georgiGlashowActionPureGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
+matrix_complex staple(long unsigned int site_index, int dir, const lattice& L_in) const
+matrix_complex georgiGlashowActionMixedGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
+matrix_complex georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const;
+matrix_complex georgiGlashowActionPhiKineticPart(long unsigned int site_index, const lattice& L_in) const;
+matrix_complex georgiGlashowActionPhiMPart(long unsigned int site_index, const lattice& L_in) const;
+matrix_complex georgiGlashowActionLambdaPart(long unsigned int site_index, const lattice& L_in) const;
 //Observables
-// double CreutzRatio(int i, int j);
 
 double averageWilsonRectangle(int dir1_len,int dir2_len) const;
 double rectangleWilson(unsigned long site_index, int dir1,int dir1_len, int dir2, int dir2_len) const;
 double averagePlaquettes() const;   //
 const matrix_complex averagePhi() const;
 const matrix_complex averagePhi2() const;
-// double CreutzRatio() const;
+//Magnetic Monopole Specific functions
+void massDiffCumSum(std::vector<double> inputData,std::vector<double> inputDataError,std::vector<double> outputData,std::vector<double> outputDataError) const;
 //Setup and Reset functions
 void setupBoundaryConditions();
 void setupBoundaryConditions( char boundaryType);

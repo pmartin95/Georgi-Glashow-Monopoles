@@ -154,10 +154,7 @@ const matrix_complex simulation::plaquette(const lattice& L_in,long unsigned sit
         matrix_complex u1, u2, u3, u4;
         int jumpNone[4] ={0}, jump2[4]={0}, jump3[4]={0};
         jump2[dir1] += 1; jump3[dir2] += 1;
-        std::cout << "pre mat call" << std::endl;
-        std::cout << "in plaquette function. site_index is " << site_index  << "\n";
         u1 = matCall(L_in,dir1, site_index,jumpNone);
-        std::cout << "matcall" << std::endl;
         u2 = matCall(L_in,dir2, site_index,jump2);
         u3 = matCall(L_in,dir1, site_index,jump3).adjoint();
         u4 = matCall(L_in,dir2, site_index,jumpNone).adjoint();

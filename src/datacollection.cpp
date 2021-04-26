@@ -44,7 +44,6 @@ void simulation::resetDataPoints()
         data.clear();
 }
 
-
 void simulation::printDataFile(const std::string& filename) const
 {
         int width = 20;
@@ -146,8 +145,6 @@ void simulation::runMHMCSimulationSchedule(int iter, int iter_measure)
                 for(int iter_index = 0; iter_index < num_iter; iter_index++)
                 {
                         multiSweepMHMC(iter_measure);
-                        if(iter_index == 0)
-                                std::cout << "Made it past a sweep.\n";
                         appendDataPoint();
                 }
         }
@@ -169,6 +166,18 @@ void simulation::convertDataForJackknifeCreutz(double g_in,int R, std::vector<st
         rectData.push_back(WR[0]);
         rectData.push_back(WR[1]);
         rectData.push_back(WR[2]);
+}
+
+
+void simulation::convertDataForJackknifeMonopoleMass(double m2_in, std::vector<double> & phi2data) const
+{
+        phi2data.clear();
+        for(int i = 0; i < data.size(); i++)
+                if(m2_in == data[i].m2_value)
+                {
+                        phi2data.push_back(data[i].average_phi2_value);
+                }
+
 }
 
 void simulation::stringTension(const std::string& base_filename,int blk_len)

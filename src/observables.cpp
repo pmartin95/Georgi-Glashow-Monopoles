@@ -7,22 +7,7 @@
 #include <omp.h>
 #include "sim.h"
 #include "stopwatch.h"
-// double simulation::CreutzRatio(int i, int j)
-// {
-//         double ratio_temp;
-//         ratio_temp = averageWilsonRectangle(i,j);
-//         ratio_temp *= averageWilsonRectangle(i-1,j-1);
-//         ratio_temp /= averageWilsonRectangle(i-1,j);
-//         ratio_temp /= averageWilsonRectangle(i,j-1);
-//         if(ratio_temp > 0.0d)
-//                 return -log(ratio_temp);
-//         else
-//         {
-//                 std::cout << "cannot perform negative log operation.\n";
-//                 return 0;
-//         }
-// }
-//
+
 double simulation::averageWilsonRectangle(int dir1_len,int dir2_len) const
 {
         double cumulative_value = 0.0;
@@ -36,22 +21,28 @@ double simulation::averageWilsonRectangle(int dir1_len,int dir2_len) const
 
 double simulation::rectangleWilson(unsigned long site_index, int dir1,int dir1_len, int dir2, int dir2_len) const
 {
+
         matrix_complex cumulative;
         long unsigned current_site_index;
         int current_coordinates[4] = {0};
         int jump_coordinates[4] = {0};
+        int i;
+
         cumulative.setIdentity();
         current_site_index = site_index;
         L.indexToCoordinate(site_index,current_coordinates);
-        for(int i=0; i < dir1_len; i++)
+        if(dir1_len == 0 || dir2_len == 0)
+                return 1.0d;
+        //Bottom part of Wilson rectangle
+        for(i=0; i < dir1_len; i++)
         {
-
                 cumulative *= matCall(L,dir1,site_index,jump_coordinates);
                 current_coordinates[dir1]++;
                 jump_coordinates[dir1]++;
                 current_site_index = L.coordinateToIndex(current_coordinates);
         }
-        for(int i=0; i < dir2_len; i++)
+        //Right part of Wilson rectangle
+        for(i=0; i < dir2_len; i++)
         {
 
                 cumulative *= matCall(L,dir2,site_index,jump_coordinates);
@@ -62,7 +53,8 @@ double simulation::rectangleWilson(unsigned long site_index, int dir1,int dir1_l
         current_coordinates[dir1]--;
         jump_coordinates[dir1]--;
         current_site_index = L.coordinateToIndex(current_coordinates);
-        for(int i=0; i < dir1_len; i++)
+        //Top part of Wilson rectangle
+        for(i=0; i < dir1_len; i++)
         {
 
                 cumulative *= matCall(L,dir1,site_index,jump_coordinates).adjoint();
@@ -75,7 +67,8 @@ double simulation::rectangleWilson(unsigned long site_index, int dir1,int dir1_l
         current_coordinates[dir2]--;
         jump_coordinates[dir2]--;
         current_site_index = L.coordinateToIndex(current_coordinates);
-        for(int i=0; i < dir2_len; i++)
+        //Left part of Wilson rectangle
+        for(i=0; i < dir2_len; i++)
         {
 
                 cumulative *= matCall(L,dir2,site_index,jump_coordinates).adjoint();
@@ -86,6 +79,7 @@ double simulation::rectangleWilson(unsigned long site_index, int dir1,int dir1_l
         current_coordinates[dir2]++;
         jump_coordinates[dir2]++;
         current_site_index = L.coordinateToIndex(current_coordinates);
+        //This is a check to make sure the rectangle gets back to the start
         if(!( current_site_index ==site_index    ))
                 std::cout << "index did not line up.\n";
         return cumulative.trace().real()*0.5;
