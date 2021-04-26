@@ -39,7 +39,7 @@ typedef double (*oneVarDoubleFunc) (double);
 typedef  const matrix_complex (simulation::*simMatrixReturn)(const lattice& L_in,int matrix_num, unsigned long int index, const int jump[4])const; //matrix_num represents either link variable number or (5) the higgs field
 //Data Collection parameters
 #define RECORD_G true
-#define RECORD_M2 false
+#define RECORD_M2 true
 #define RECORD_LAMBDA false
 #define RECORD_PHI2 true
 #define RECORD_RECTANGLES true
@@ -112,7 +112,7 @@ double georgiGlashowHamiltonian(const lattice& L_in, const Plattice& P_in) const
 double Hamiltonian() const;
 matrix_complex georgiGlashowActionLinkDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
 matrix_complex georgiGlashowActionPureGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
-matrix_complex staple(long unsigned int site_index, int dir, const lattice& L_in) const
+matrix_complex staple(long unsigned int site_index, int dir, const lattice& L_in) const;
 matrix_complex georgiGlashowActionMixedGaugeDerivative(long unsigned int site_index, int dir, const lattice& L_in) const;
 matrix_complex georgiGlashowActionPhiDerivative(long unsigned int site_index, const lattice& L_in) const;
 matrix_complex georgiGlashowActionPhiKineticPart(long unsigned int site_index, const lattice& L_in) const;
@@ -163,6 +163,7 @@ void loadScheduleValues(int i);
 void runHMCSimulationSchedule(int init_iter,int iter, int iter_measure);
 void runMHMCSimulationSchedule(int iter, int iter_measure);
 void convertDataForJackknifeCreutz(double g_in,int R, std::vector<std::vector<double> >& rectData) const;
+void convertDataForJackknifeMonopoleMass(double m2_in, std::vector<double> & phi2data) const;
 void stringTension(const std::string& base_filename,int blk_len);
 //private:
 int steps;
