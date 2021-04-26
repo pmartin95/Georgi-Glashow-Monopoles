@@ -21,43 +21,28 @@
 int main()
 {
 
-        //lattice(g)
+        simulation sim1, sim2;
+        double current_m2,next_m2;
+        int current_data_index1;
+        std::vector<double> dataCollect1, dataCollect2;
 
+        sim1.setupBoundaryConditions('t');
+        sim2.setupBoundaryConditions('c');
+        sim1.inputScheduleParameters("monopole_schedule.txt");
+        sim2.inputScheduleParameters("monopole_schedule.txt");
 
-        // simulation sim1;
-        // std::vector<std::vector<double> > temp;
-        // double temp_ave, temp_error;
-        //
-        //
-        //
-        // sim1.inputScheduleParameters("annealingSchedule.txt");
-        //
-        // sim1.runMHMCSimulationSchedule(2000, 100);
-        // for(int i =0; i < sim1.schedule.size(); i++)
-        // {
-        //         sim1.convertDataForJackknifeCreutz(sim1.schedule[i].g_value,2, temp);
-        //         computeJackknifeStatistics(temp[2], average,  2, temp_ave, temp_error );
-        //         std::cout << 4.0/sim1.schedule[i].g_value*sim1.schedule[i].g_value << " " << temp_ave<< " " << temp_error << std::endl;
-        // }
-        // sim1.resetDataPoints();
-        // sim1.runHMCSimulationSchedule(30,200,10);
-        // for(int i =0; i < sim1.schedule.size(); i++)
-        // {
-        //         sim1.convertDataForJackknifeCreutz(sim1.schedule[i].g_value,2, temp);
-        //         computeJackknifeStatistics(temp[2], average,  2, temp_ave, temp_error );
-        //         std::cout << 4.0/sim1.schedule[i].g_value*sim1.schedule[i].g_value << " " << temp_ave<< " " << temp_error << std::endl;
-        // }
+        sim1.runMHMCSimulationSchedule(20000, 100);
+        sim2.runMHMCSimulationSchedule(20000, 100);
+        //This collects the phi^2 data
+        for(m2s)
+        {
+                sim1.convertDataForJackknifeMonopoleMass(current_m2,dataCollect1);
+                sim1.convertDataForJackknifeMonopoleMass(current_m2,dataCollect2);
 
-        // sim1.stringTension("string2go",10);
+        }
 
+        //Convert phi^2 data into (m2-m1) * phi^2 for jackknifing
 
         std::cout << '\a';
         return 0;
-}
-
-double cosave(const std::vector<double>& in)
-{
-        double temp;
-        temp = average(in);
-        return cos(temp);
 }
