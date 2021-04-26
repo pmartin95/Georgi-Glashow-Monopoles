@@ -1,0 +1,9 @@
+*.o
+*.txt
+*.dat
+*.exe
+/energy_dat/**
+/plaquettes/**
+..\datafiles\**
+\energy_dat\**
+\plaquettes\**
