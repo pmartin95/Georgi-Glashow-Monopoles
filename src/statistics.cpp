@@ -60,7 +60,7 @@ int computeJackknifeStatistics(const std::vector<double>& inputData, vectorFunc 
         return JACKKNIFE_SUCCESS;
 }
 
-int computeJackknifeStatistics(const std::vector<std::vector<double> >& inputData1, vectorVectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error )
+int computeJackknifeStatistics(const std::vector<std::vector<double> >& inputData, vectorVectorFunc f,  int setLength, double& Jackknife_ave, double& Jackknife_error )
 {
         if(inputData[0].size()%setLength != 0)
                 return JACKKNIFE_NO_DIVIDE;
@@ -128,7 +128,7 @@ double expectExpPhi2(double m2_diff,const vector<double>& twistedphi2,const vect
 {
         double num, den;
         num = std::exp(   m2_diff * average(twistedphi2) );
-        den = std::exp(   (m2_1 - m2_2) * average(cphi2) );
+        den = std::exp(   m2_diff * average(cphi2) );
         return -std::log(num/den);
 }
 
