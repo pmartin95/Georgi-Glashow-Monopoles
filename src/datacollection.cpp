@@ -157,7 +157,7 @@ void simulation::convertDataForJackknifeCreutz(double g_in,int R, std::vector<st
         std::vector<double> WR[3];
         for(int i = 0; i < data.size(); i++)
                 if(g_in == data[i].g_value)
-                {
+                { 
                         WR[0].push_back(data[i].upper_rectangles[R]);
                         WR[1].push_back(data[i].lower_rectangles[R-1]);
                         WR[2].push_back(data[i].upper_rectangles[R-1]);
