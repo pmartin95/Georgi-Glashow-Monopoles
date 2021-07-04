@@ -23,7 +23,7 @@
 #include "statistics.h"
 #include "rand.h"
 #include <iomanip>
-#define DEFAULT_STEPS 10
+#define DEFAULT_STEPS 20
 #define DEFAULT_STEP_SIZE 1.0/DEFAULT_STEPS
 
 #define FIRST_TERM_PARAM 1.0 //for turning on an off the first part of the action

@@ -15,8 +15,8 @@ void simulation::updateFields(long unsigned site_index,double time_step, const P
         matrix_complex expEvo;
         FORALLDIR(dir)
         {
-                expEvo = CayleyHamiltonExp((complex<double>(0.0,1.0) * time_step * P_in.site[site_index].link[dir] ));
-                L_out.site[site_index].link[dir] =  0.5*(expEvo*L_in.site[site_index].link[dir] + L_in.site[site_index].link[dir] * expEvo);
+                expEvo = CayleyHamiltonExp((complex<double>(0.0,-1.0) * time_step * P_in.site[site_index].link[dir] ));
+                L_out.site[site_index].link[dir] =  L_in.site[site_index].link[dir] * expEvo ;
         }
 
         #endif

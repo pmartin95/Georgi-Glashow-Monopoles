@@ -21,28 +21,30 @@
 int main()
 {
 
-        simulation sim1, sim2;
-        double current_m2,next_m2;
-        int current_data_index1;
-        std::vector<double> dataCollect1, dataCollect2;
+        int iters = 100;
+        double energy_diffs = 0.0;
+        simulation sim1;
+        for (size_t i = 0; i < 50; i++)
+        {
+               sim1.initializeHMC();
+        }
+        
+        
+        for (size_t j = 0; j < 100; j++)
+        {
+                for (int i = 0; i < iters; i++)
+                {
+                        energy_diffs += abs(sim1.runLeapfrogSimulation());
+                }
+                std::cout << energy_diffs / static_cast<double>(iters) << std::endl;
+                energy_diffs = 0.0;
+        }
 
-        sim1.setupBoundaryConditions('t');
-        sim2.setupBoundaryConditions('c');
-
-        sim1.inputScheduleParameters("monopole_schedule.txt");
-        sim2.inputScheduleParameters("monopole_schedule.txt");
-
-        sim1.runMHMCSimulationSchedule(20000, 100);
-        sim2.runMHMCSimulationSchedule(20000, 100);
-        //This collects the phi^2 data
-        // for(m2s)
-        // {
-        //         sim1.convertDataForJackknifeMonopoleMass(current_m2,dataCollect1);
-        //         sim1.convertDataForJackknifeMonopoleMass(current_m2,dataCollect2);
-        //
-        // }
-
-        //Convert phi^2 data into (m2-m1) * phi^2 for jackknifing
+        // simulation sim1;
+        // sim1.inputScheduleParameters("annealingSchedule.txt");
+        // sim1.runHMCSimulationSchedule(30,300,10);
+        // sim1.printDataFile("HMCtestfiles/modHMCTest1.txt");
+        // sim1.stringTension("HMCtestfiles/stringTensionModHMCTest1.txt",5);
 
         std::cout << '\a';
         return 0;

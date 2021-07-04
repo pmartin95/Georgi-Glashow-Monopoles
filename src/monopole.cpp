@@ -20,11 +20,11 @@ void simulation::massDiffCumSum(std::vector<double> inputData,std::vector<double
         cumSumError.push_back(inputDataError[0]);
 
         for(i=0; i<inputData.size()-1; i++)
-                cumSumData[i+1].push_back(cumSumData[i]+inputData[i+1]);
+                cumSumData.push_back(cumSumData[i]+inputData[i+1]);
 
         outputData = cumSumData;
         for(i=0; i<inputDataError.size()-1; i++)
-                cumSumError[i+1].push_back(sqrt(cumSumError[i]*cumSumError[i]+ inputDataError[i+1]  * inputDataError[i+1]  ));
+                cumSumError.push_back(sqrt(cumSumError[i]*cumSumError[i]+ inputDataError[i+1]  * inputDataError[i+1]  ));
         outputDataError = cumSumError;
 
 }

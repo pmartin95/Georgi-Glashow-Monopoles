@@ -136,7 +136,7 @@ std::vector<double> excludeVectorBlock(const std::vector<double>& data,int start
 {
         std::vector<double> holdingVector;
         holdingVector.reserve(data.size()-blockLen);
-        holdingVector.insert(holdingVector.end(),data.begin(),inputData[j].begin() +startLoc*blockLen);
+        holdingVector.insert(holdingVector.end(),data.begin(),data.begin() +startLoc*blockLen);
         holdingVector.insert(holdingVector.end(),data.begin() + (startLoc+1)*blockLen,data.end());
         return holdingVector;
 }
